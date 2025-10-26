@@ -43,6 +43,22 @@ func (b *Board) CellState(row, col int) CellState {
 	}
 }
 
+// Count the number of pieces on the black board
+func (b *Board) CountOfPieces(forBlack bool) int {
+	var n uint64
+	if forBlack {
+		n = b.Black
+	} else {
+		n = b.White
+	}
+	counter := 0
+	for n != 0 {
+		n = n & (n - 1)
+		counter++
+	}
+	return counter
+}
+
 // SetCellState sets a cell to black, white, or empty.
 func (b *Board) SetCellState(row, col int, state CellState) {
 	if row < 0 || row > 7 || col < 0 || col > 7 {
@@ -261,4 +277,9 @@ func main() {
 	PrintBitboard(possibles)
 	board.MakeMove(true, 2, 3)
 	board.PrintBoard()
+	x := board.CountOfPieces(true)
+	fmt.Println(x)
+	y := board.CountOfPieces(false)
+	fmt.Println(y)
+
 }
