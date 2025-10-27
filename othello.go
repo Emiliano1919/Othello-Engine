@@ -180,7 +180,7 @@ func ArrayOfMoves(legalMoves uint64) []int {
 	return res
 }
 
-// Get a sorted array of the legal move locations in the board
+// Get a sorted array of the legal move locations in row column format in the board
 func ArrayOfPositionalMoves(legalMoves []int) [][]int {
 	var res [][]int
 	for _, move := range legalMoves {
