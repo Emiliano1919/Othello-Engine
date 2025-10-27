@@ -180,6 +180,17 @@ func ArrayOfMoves(legalMoves uint64) []int {
 	return res
 }
 
+// Get a sorted array of the legal move locations in the board
+func ArrayOfPositionalMoves(legalMoves []int) [][]int {
+	var res [][]int
+	for _, move := range legalMoves {
+		row := move / 8
+		col := move % 8
+		res = append(res, []int{row, col})
+	}
+	return res
+}
+
 // --- Helpers to check moves ---
 func (b *Board) HasValidMove(forBlack bool) bool {
 	if forBlack {
@@ -289,7 +300,9 @@ func main() {
 	board.PrintBoard()
 	possibles := generateMoves(board.Black, board.White)
 	PrintBitboard(possibles)
-	fmt.Println(ArrayOfMoves(possibles))
+	array := ArrayOfMoves(possibles)
+	fmt.Println(array)
+	fmt.Println(ArrayOfPositionalMoves(array))
 	board.MakeMove(true, 2, 3)
 	board.PrintBoard()
 	x := board.CountOfPieces(true)
