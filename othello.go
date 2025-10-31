@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+type State struct {
+	Boards    Board
+	BlackTurn bool
+}
+
 // Board holds bitboards for black and white disks (disjoint).
 type Board struct {
 	Black uint64
@@ -181,12 +186,12 @@ func ArrayOfMoves(legalMoves uint64) []int {
 }
 
 // Get a sorted array of the legal move locations in row column format in the board
-func ArrayOfPositionalMoves(legalMoves []int) [][]int {
-	var res [][]int
+func ArrayOfPositionalMoves(legalMoves []int) [][2]int {
+	var res [][2]int
 	for _, move := range legalMoves {
 		row := move / 8
 		col := move % 8
-		res = append(res, []int{row, col})
+		res = append(res, [2]int{row, col})
 	}
 	return res
 }
@@ -290,6 +295,18 @@ func PrintBitboard(bits uint64) {
 		}
 		fmt.Println()
 	}
+}
+
+// Node struct and methods
+
+type Node struct {
+	Visits       int
+	Wins         int
+	Parent       *Node
+	Children     []*Node
+	GameState    State  // Current boards with whose turn is it to move
+	Move         [2]int // The move that led us here
+	UntriedMoves [][2]int
 }
 
 // --- Example usage ---
