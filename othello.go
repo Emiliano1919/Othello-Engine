@@ -196,7 +196,8 @@ func ArrayOfPositionalMoves(legalMoves []int) [][2]int {
 	return res
 }
 
-// --- Helpers to check moves ---
+// --- Helpers to check if there are possible moves ---
+// Input: Flag to indicate if we want to check for black or not (White)
 func (b *Board) HasValidMove(forBlack bool) bool {
 	if forBlack {
 		return generateMoves(b.Black, b.White) != 0
@@ -307,6 +308,26 @@ type Node struct {
 	GameState    State  // Current boards with whose turn is it to move
 	Move         [2]int // The move that led us here
 	UntriedMoves [][2]int
+}
+
+func (node *Node) IsFullyExpanded() bool {
+	return len(node.UntriedMoves) == 0
+}
+
+func (node *Node) IsTerminal() bool {
+	// Check if black and white have remaining moves
+	// NOTE: CHECK HERE I THINK THE LOGIC MIGHT NOT BE FULLY CORRECT
+	return node.GameState.Boards.HasValidMove(true) == false && node.GameState.Boards.HasValidMove(false) == false
+}
+
+func (node *Node) Winner() int {
+	if node.GameState.Boards.CountOfPieces(true) > node.GameState.Boards.CountOfPieces(false) {
+		return 1 // Black wins
+	} else if node.GameState.Boards.CountOfPieces(true) < node.GameState.Boards.CountOfPieces(false) {
+		return 0 // White wins
+	} else {
+		return 2 // Draw
+	}
 }
 
 // --- Example usage ---
