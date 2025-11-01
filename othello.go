@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 type State struct {
@@ -374,6 +375,30 @@ func (node *Node) Expand() *Node {
 	child := NewNode(nextState, node, move)
 	node.Children = append(node.Children, child)
 	return child
+}
+
+func (node *Node) Traverse() *Node {
+	for node.IsFullyExpanded() && !node.IsTerminal() {
+		node = BestUCT(node)
+	}
+	if node.IsTerminal() {
+		return node
+	}
+	return node.Expand()
+}
+
+func BestUCT(node *Node) int {
+	var best *Node
+	bestNode := float64(-1 << 63)
+	for _, child := range node.Children {
+		explotationTerm := float64(node.Wins) / float64(node.Visits)
+		explorationTerm := math.Sqrt(math.Log())
+		C := math.Sqrt(2) // Theoretical value, will try to find a better one through self play
+	}
+}
+
+func (node *Node) SimulateRollout() {
+
 }
 
 // --- Example usage ---
