@@ -348,6 +348,34 @@ func (node *Node) Winner() int {
 	}
 }
 
+func (node *Node) Expand() *Node {
+	if len(node.UntriedMoves) == 0 {
+		return nil
+	}
+	// Pop
+	move := node.UntriedMoves[len(node.UntriedMoves)-1]
+	node.UntriedMoves = node.UntriedMoves[:len(node.UntriedMoves)-1]
+
+	// We generate a new node because make move does not generate a new board by default
+	newBoards := node.GameState.Boards // Copy
+	newBoards.MakeMove(node.GameState.BlackTurn, move[0], move[1])
+
+	nextState := State{
+		Boards:    newBoards,
+		BlackTurn: !node.GameState.BlackTurn, // SWITCH TURN
+	}
+
+	// Edge case: (If in the next turn the player cannot make a move switch the turn again)
+
+	if !nextState.Boards.HasValidMove(nextState.BlackTurn) && nextState.Boards.HasValidMove(!nextState.BlackTurn) {
+		nextState.BlackTurn = !nextState.BlackTurn
+	}
+	// Generate the child with the new values and add it to the list of children of the node
+	child := NewNode(nextState, node, move)
+	node.Children = append(node.Children, child)
+	return child
+}
+
 // --- Example usage ---
 
 func main() {
