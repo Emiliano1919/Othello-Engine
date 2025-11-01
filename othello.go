@@ -310,6 +310,24 @@ type Node struct {
 	UntriedMoves [][2]int
 }
 
+func NewNode(state State, parent *Node, move [2]int) *Node {
+	var legalMoves uint64
+	if state.BlackTurn {
+		legalMoves = generateMoves(state.Boards.Black, state.Boards.White)
+	} else {
+		legalMoves = generateMoves(state.Boards.White, state.Boards.Black)
+	}
+	movesFromCurrent := ArrayOfPositionalMoves(ArrayOfMoves(legalMoves))
+
+	return &Node{
+		Parent:       parent,
+		GameState:    state,
+		Move:         move,
+		UntriedMoves: movesFromCurrent,
+		Children:     []*Node{},
+	}
+}
+
 func (node *Node) IsFullyExpanded() bool {
 	return len(node.UntriedMoves) == 0
 }
