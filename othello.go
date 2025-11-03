@@ -387,14 +387,21 @@ func (node *Node) Traverse() *Node {
 	return node.Expand()
 }
 
-func BestUCT(node *Node) int {
+func BestUCT(node *Node) *Node {
 	var best *Node
-	bestNode := float64(-1 << 63)
+	bestUCT := float64(-1 << 63)
 	for _, child := range node.Children {
-		explotationTerm := float64(node.Wins) / float64(node.Visits)
-		explorationTerm := math.Sqrt(math.Log())
+		explotationTerm := float64(child.Wins) / float64(child.Visits)
+		explorationTerm := math.Sqrt(math.Log(float64(node.Visits)) / float64(child.Visits))
 		C := math.Sqrt(2) // Theoretical value, will try to find a better one through self play
+		UCTValue := explorationTerm + C*explotationTerm
+
+		if UCTValue > bestUCT {
+			bestUCT = UCTValue
+			best = child
+		}
 	}
+	return best
 }
 
 func (node *Node) SimulateRollout() {
