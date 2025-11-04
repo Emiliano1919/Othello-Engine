@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 type State struct {
@@ -333,20 +334,28 @@ func (node *Node) IsFullyExpanded() bool {
 	return len(node.UntriedMoves) == 0
 }
 
+func IsTerminalState(state State) bool {
+	return state.Boards.HasValidMove(true) == false && state.Boards.HasValidMove(false) == false
+}
+
 func (node *Node) IsTerminal() bool {
 	// Check if black and white have remaining moves
 	// NOTE: CHECK HERE I THINK THE LOGIC MIGHT NOT BE FULLY CORRECT
-	return node.GameState.Boards.HasValidMove(true) == false && node.GameState.Boards.HasValidMove(false) == false
+	return IsTerminalState(node.GameState)
 }
 
-func (node *Node) Winner() int {
-	if node.GameState.Boards.CountOfPieces(true) > node.GameState.Boards.CountOfPieces(false) {
+func WinnerState(state State) int {
+	if state.Boards.CountOfPieces(true) > state.Boards.CountOfPieces(false) {
 		return 1 // Black wins
-	} else if node.GameState.Boards.CountOfPieces(true) < node.GameState.Boards.CountOfPieces(false) {
+	} else if state.Boards.CountOfPieces(true) < state.Boards.CountOfPieces(false) {
 		return 0 // White wins
 	} else {
 		return 2 // Draw
 	}
+}
+
+func (node *Node) Winner() int {
+	return WinnerState(node.GameState)
 }
 
 func (node *Node) Expand() *Node {
@@ -377,7 +386,7 @@ func (node *Node) Expand() *Node {
 	return child
 }
 
-func (node *Node) Traverse() *Node {
+func Traverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = BestUCT(node, float64(2))
 	}
@@ -404,8 +413,31 @@ func BestUCT(node *Node, c float64) *Node {
 	return best
 }
 
-func (node *Node) SimulateRollout() {
+func SimulateRollout(state State) int {
+	current := state
 
+	for !IsTerminalState(current) {
+		var moves uint64
+		if current.BlackTurn {
+			moves = generateMoves(current.Boards.Black, current.Boards.White)
+		} else {
+			moves = generateMoves(current.Boards.White, current.Boards.Black)
+		}
+
+		if moves == 0 {
+			// no moves, then pass turn
+			current.BlackTurn = !current.BlackTurn
+			continue
+		}
+
+		moveArray := ArrayOfPositionalMoves(ArrayOfMoves(moves))
+		move := moveArray[rand.Intn(len(moveArray))] // Here is the rollout ppolicy  which is random
+
+		current.Boards.MakeMove(current.BlackTurn, move[0], move[1])
+		current.BlackTurn = !current.BlackTurn
+	}
+	// 1 = Black win, 0 = White win, 2 = draw
+	return WinnerState(current)
 }
 
 // --- Example usage ---
