@@ -284,6 +284,20 @@ func (b *Board) PrintBoard() {
 	}
 }
 
+func RequestMove() [2]int {
+	var arr [2]int
+
+	fmt.Print("Enter your move white (e.g., 3 7): ")
+	_, err := fmt.Scanf("%d %d", &arr[0], &arr[1])
+	if err != nil {
+		fmt.Println("Error:", err)
+		panic(nil)
+	}
+
+	fmt.Println("You entered:", arr)
+	return arr
+}
+
 func PrintBitboard(bits uint64) {
 	fmt.Println("  A B C D E F G H")
 	for row := 0; row < 8; row++ {
@@ -310,6 +324,27 @@ type Node struct {
 	GameState    State  // Current boards with whose turn is it to move
 	Move         [2]int // The move that led us here
 	UntriedMoves [][2]int
+}
+
+func InitialRootNode() *Node {
+	var node *Node
+	var boards Board
+	boards.Init()
+	var state State
+	state.Boards = boards
+	state.BlackTurn = true
+	var empty [2]int
+	node = NewNode(state, nil, empty)
+	return node
+}
+
+func NextNodeFromInput(parent *Node, move [2]int) *Node {
+	var newState State
+	newBoards := parent.GameState.Boards // Copy
+	newBoards.MakeMove(!parent.GameState.BlackTurn, move[0], move[1])
+	newState.Boards = newBoards
+	newState.BlackTurn = !parent.GameState.BlackTurn
+	return NewNode(newState, parent, move)
 }
 
 func NewNode(state State, parent *Node, move [2]int) *Node {
@@ -478,18 +513,33 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 // --- Example usage ---
 
 func main() {
-	var board Board
-	board.Init()
-	board.PrintBoard()
-	possibles := generateMoves(board.Black, board.White)
-	PrintBitboard(possibles)
-	array := ArrayOfMoves(possibles)
-	fmt.Println(array)
-	fmt.Println(ArrayOfPositionalMoves(array))
-	board.MakeMove(true, 2, 3)
-	board.PrintBoard()
-	x := board.CountOfPieces(true)
-	fmt.Println(x)
-	y := board.CountOfPieces(false)
-	fmt.Println(y)
+	// var board Board
+	// board.Init()
+	// board.PrintBoard()
+	// possibles := generateMoves(board.Black, board.White)
+	// PrintBitboard(possibles)
+	// array := ArrayOfMoves(possibles)
+	// fmt.Println(array)
+	// fmt.Println(ArrayOfPositionalMoves(array))
+	// board.MakeMove(true, 2, 3)
+	// board.PrintBoard()
+	// x := board.CountOfPieces(true)
+	// fmt.Println(x)
+	// y := board.CountOfPieces(false)
+	// fmt.Println(y)
+	initialNode := InitialRootNode()
+	initialNode.GameState.Boards.PrintBoard()
+	bestOpening := MonteCarloTreeSearch(initialNode, 5000)
+	bestOpening.GameState.Boards.PrintBoard()
+	node := bestOpening
+	for !node.IsTerminal() {
+		possibles := generateMoves(node.GameState.Boards.White, node.GameState.Boards.Black)
+		PrintBitboard(possibles)
+		whiteMove := RequestMove()
+		whiteNode := NextNodeFromInput(node, whiteMove)
+		mctsNode := MonteCarloTreeSearch(whiteNode, 5000)
+		mctsNode.GameState.Boards.PrintBoard()
+		node = mctsNode
+	}
+
 }
