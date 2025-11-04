@@ -453,6 +453,28 @@ func backpropagate(node *Node, result int) {
 	}
 }
 
+func BestNodeFromMCTS(node *Node) *Node {
+	var bestNode *Node
+	maxVisits := -1
+	for _, child := range node.Children {
+		if child.Visits > maxVisits {
+			maxVisits = child.Visits
+			bestNode = child
+		}
+	}
+	return bestNode
+}
+
+func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
+	for i := 0; i < iterations; i++ {
+		leaf := Traverse(currentRoot)
+		child := leaf.Expand()
+		result := SimulateRollout(child.GameState)
+		backpropagate(child, result)
+	}
+	return BestNodeFromMCTS(currentRoot)
+}
+
 // --- Example usage ---
 
 func main() {
