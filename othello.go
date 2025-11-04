@@ -440,6 +440,19 @@ func SimulateRollout(state State) int {
 	return WinnerState(current)
 }
 
+func backpropagate(node *Node, result int) {
+	for node != nil {
+		node.Visits++
+		// Will have to fix this here,a dn take into account the turn correctly
+		if result == 2 {
+			node.Wins += 1
+		} else {
+			node.Wins += result // We are technically speaking just accounting for black
+		}
+		node = node.Parent
+	}
+}
+
 // --- Example usage ---
 
 func main() {
