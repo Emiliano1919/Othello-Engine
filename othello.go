@@ -361,6 +361,52 @@ func RequestMove() [2]int {
 	return arr
 }
 
+func RequestUserIsBlack() bool {
+	for {
+		var choice string
+		fmt.Print("Enter B if you want to play as Black or W if you want to play as White: ")
+		_, err := fmt.Scanln(&choice)
+		if err != nil {
+			fmt.Println("Error:", err)
+			continue
+		}
+
+		if len(choice) == 0 {
+			fmt.Println("No input received, defaulting to White.")
+			return false
+		}
+
+		switch choice[0] {
+		case 'B', 'b':
+			fmt.Println("You will play as Black.")
+			return true
+		case 'W', 'w':
+			fmt.Println("You will play as White.")
+			return false
+		default:
+			fmt.Println("Invalid input, please enter B or W.")
+		}
+	}
+}
+
+func OutputResult(node *Node) {
+	if node.IsTerminal() {
+		fmt.Println("Game finished:")
+	}
+	black := node.GameState.Boards.CountOfPieces(true)
+	white := node.GameState.Boards.CountOfPieces(false)
+	fmt.Printf("Black: %d\n", black)
+	fmt.Printf("White: %d\n", white)
+
+	if black > white {
+		fmt.Println("Winner: Black")
+	} else if white > black {
+		fmt.Println("Winner: White")
+	} else {
+		fmt.Println("It's a tie!")
+	}
+}
+
 func PrintBitboard(bits uint64) {
 	fmt.Println("  A B C D E F G H")
 	for row := 0; row < 8; row++ {
@@ -609,19 +655,6 @@ func main() {
 		}
 	}
 	if node.IsTerminal() {
-		fmt.Println("Game finished:")
-		black := node.GameState.Boards.CountOfPieces(true)
-		white := node.GameState.Boards.CountOfPieces(false)
-		fmt.Printf("Black: %d\n", black)
-		fmt.Printf("White: %d\n", white)
-
-		if black > white {
-			fmt.Println("Winner: Black")
-		} else if white > black {
-			fmt.Println("Winner: White")
-		} else {
-			fmt.Println("It's a tie!")
-		}
+		OutputResult(node)
 	}
-
 }
