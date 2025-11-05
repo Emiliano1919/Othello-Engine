@@ -267,21 +267,85 @@ func (b *Board) MakeMove(forBlack bool, row, col int) {
 
 // PrintBoard prints the board in a readable 8×8 grid.
 func (b *Board) PrintBoard() {
-	fmt.Println("  A B C D E F G H")
+	fmt.Println()
+	fmt.Println("    a b c d e f g h")
+	fmt.Println("   -----------------")
 	for row := 0; row < 8; row++ {
-		fmt.Printf("%d ", row+1)
+		fmt.Printf("%d | ", row+1)
 		for col := 0; col < 8; col++ {
 			switch b.CellState(row, col) {
 			case CELL_BLACK:
-				fmt.Print("B ")
+				fmt.Print("@ ")
 			case CELL_WHITE:
-				fmt.Print("W ")
+				fmt.Print("o ")
 			default:
 				fmt.Print(". ")
 			}
 		}
-		fmt.Println()
+		fmt.Printf("| %d\n", row+1)
 	}
+	fmt.Println("   -----------------")
+	fmt.Println("    a b c d e f g h")
+	fmt.Println()
+}
+
+// PrintBoardWithMoves prints the board and shows all possible legal moves
+// for the current player, marking them with '*'. It also prints a list of
+// usable move inputs like "d3".
+func (s *State) PrintBoardWithMoves() {
+	b := s.Boards
+
+	var legalMoves uint64
+	if s.BlackTurn {
+		legalMoves = generateMoves(b.Black, b.White)
+	} else {
+		legalMoves = generateMoves(b.White, b.Black)
+	}
+
+	fmt.Println()
+	if s.BlackTurn {
+		fmt.Println("Turn: Black (B)")
+	} else {
+		fmt.Println("Turn: White (W)")
+	}
+
+	fmt.Println("    a b c d e f g h")
+	fmt.Println("   -----------------")
+	for row := 0; row < 8; row++ {
+		fmt.Printf("%d | ", row+1)
+		for col := 0; col < 8; col++ {
+			mask := uint64(1) << (row*8 + col)
+			switch {
+			case b.Black&mask != 0:
+				fmt.Print("@ ")
+			case b.White&mask != 0:
+				fmt.Print("o ")
+			case legalMoves&mask != 0:
+				fmt.Print("* ") // possible move
+			default:
+				fmt.Print(". ")
+			}
+		}
+		fmt.Printf("| %d\n", row+1)
+	}
+	fmt.Println("   -----------------")
+	fmt.Println("    a b c d e f g h")
+
+	// Now print the moves in input format
+	arr := ArrayOfPositionalMoves(ArrayOfMoves(legalMoves))
+	if len(arr) == 0 {
+		fmt.Println("\nNo legal moves available.")
+		return
+	}
+
+	fmt.Println("\nPossible moves:")
+	for _, m := range arr {
+		row := m[0]
+		col := m[1]
+		fmt.Printf("  %c%d -> enter as: %c%d or \"%d %d\"\n",
+			'a'+rune(col), row+1, 'a'+rune(col), row+1, row, col)
+	}
+	fmt.Println()
 }
 
 func RequestMove() [2]int {
@@ -293,7 +357,6 @@ func RequestMove() [2]int {
 		fmt.Println("Error:", err)
 		panic(nil)
 	}
-
 	fmt.Println("You entered:", arr)
 	return arr
 }
@@ -339,11 +402,17 @@ func InitialRootNode() *Node {
 }
 
 func NextNodeFromInput(parent *Node, move [2]int) *Node {
-	var newState State
-	newBoards := parent.GameState.Boards // Copy
-	newBoards.MakeMove(!parent.GameState.BlackTurn, move[0], move[1])
-	newState.Boards = newBoards
-	newState.BlackTurn = !parent.GameState.BlackTurn
+	newBoards := parent.GameState.Boards                             // Copy
+	newBoards.MakeMove(parent.GameState.BlackTurn, move[0], move[1]) // We make the move on the current player
+	newState := State{
+		Boards:    newBoards,
+		BlackTurn: !parent.GameState.BlackTurn, // switch turn immediately
+	}
+	// Switch turn but conditionally to deal with edgecase of the opponent having no moves.
+	if !newState.Boards.HasValidMove(newState.BlackTurn) && newState.Boards.HasValidMove(!newState.BlackTurn) {
+		fmt.Println("No valid moves for next player — passing turn back.")
+		newState.BlackTurn = !newState.BlackTurn
+	}
 	return NewNode(newState, parent, move)
 }
 
@@ -501,11 +570,21 @@ func BestNodeFromMCTS(node *Node) *Node {
 }
 
 func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
+	if currentRoot.IsTerminal() {
+		return currentRoot
+	}
 	for i := 0; i < iterations; i++ {
 		leaf := Traverse(currentRoot)
-		child := leaf.Expand()
-		result := SimulateRollout(child.GameState)
-		backpropagate(child, result)
+		var nodeToSimulateFrom *Node
+		if len(leaf.UntriedMoves) > 0 {
+			child := leaf.Expand()
+			nodeToSimulateFrom = child
+		} else {
+			nodeToSimulateFrom = leaf
+		}
+
+		result := SimulateRollout(nodeToSimulateFrom.GameState)
+		backpropagate(nodeToSimulateFrom, result)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
@@ -513,33 +592,36 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 // --- Example usage ---
 
 func main() {
-	// var board Board
-	// board.Init()
-	// board.PrintBoard()
-	// possibles := generateMoves(board.Black, board.White)
-	// PrintBitboard(possibles)
-	// array := ArrayOfMoves(possibles)
-	// fmt.Println(array)
-	// fmt.Println(ArrayOfPositionalMoves(array))
-	// board.MakeMove(true, 2, 3)
-	// board.PrintBoard()
-	// x := board.CountOfPieces(true)
-	// fmt.Println(x)
-	// y := board.CountOfPieces(false)
-	// fmt.Println(y)
 	initialNode := InitialRootNode()
 	initialNode.GameState.Boards.PrintBoard()
 	bestOpening := MonteCarloTreeSearch(initialNode, 5000)
 	bestOpening.GameState.Boards.PrintBoard()
 	node := bestOpening
 	for !node.IsTerminal() {
-		possibles := generateMoves(node.GameState.Boards.White, node.GameState.Boards.Black)
-		PrintBitboard(possibles)
-		whiteMove := RequestMove()
-		whiteNode := NextNodeFromInput(node, whiteMove)
-		mctsNode := MonteCarloTreeSearch(whiteNode, 5000)
-		mctsNode.GameState.Boards.PrintBoard()
-		node = mctsNode
+		if !node.GameState.BlackTurn {
+			node.GameState.PrintBoardWithMoves()
+			whiteMove := RequestMove()
+			node = NextNodeFromInput(node, whiteMove)
+		} else {
+			mctsNode := MonteCarloTreeSearch(node, 5000)
+			mctsNode.GameState.Boards.PrintBoard()
+			node = mctsNode
+		}
+	}
+	if node.IsTerminal() {
+		fmt.Println("Game finished:")
+		black := node.GameState.Boards.CountOfPieces(true)
+		white := node.GameState.Boards.CountOfPieces(false)
+		fmt.Printf("Black: %d\n", black)
+		fmt.Printf("White: %d\n", white)
+
+		if black > white {
+			fmt.Println("Winner: Black")
+		} else if white > black {
+			fmt.Println("Winner: White")
+		} else {
+			fmt.Println("It's a tie!")
+		}
 	}
 
 }
