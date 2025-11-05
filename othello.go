@@ -348,10 +348,15 @@ func (s *State) PrintBoardWithMoves() {
 	fmt.Println()
 }
 
-func RequestMove() [2]int {
+func RequestMove(userIsBlack bool) [2]int {
 	var arr [2]int
 
-	fmt.Print("Enter your move white (e.g., 3 7): ")
+	color := "white"
+	if userIsBlack {
+		color = "black"
+	}
+
+	fmt.Printf("Enter your move %s (e.g., 3 7): ", color)
 	_, err := fmt.Scanf("%d %d", &arr[0], &arr[1])
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -640,18 +645,38 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 func main() {
 	initialNode := InitialRootNode()
 	initialNode.GameState.Boards.PrintBoard()
-	bestOpening := MonteCarloTreeSearch(initialNode, 5000)
-	bestOpening.GameState.Boards.PrintBoard()
-	node := bestOpening
+	userIsBlack := RequestUserIsBlack()
+	var node *Node
+	if !userIsBlack {
+		bestOpening := MonteCarloTreeSearch(initialNode, 5000)
+		bestOpening.GameState.Boards.PrintBoard()
+		node = bestOpening
+	} else {
+		initialNode.GameState.PrintBoardWithMoves()
+		blackMove := RequestMove(userIsBlack)
+		node = NextNodeFromInput(initialNode, blackMove)
+	}
 	for !node.IsTerminal() {
-		if !node.GameState.BlackTurn {
-			node.GameState.PrintBoardWithMoves()
-			whiteMove := RequestMove()
-			node = NextNodeFromInput(node, whiteMove)
+		if !userIsBlack {
+			if !node.GameState.BlackTurn {
+				node.GameState.PrintBoardWithMoves()
+				whiteMove := RequestMove(userIsBlack)
+				node = NextNodeFromInput(node, whiteMove)
+			} else {
+				mctsNode := MonteCarloTreeSearch(node, 5000)
+				mctsNode.GameState.Boards.PrintBoard()
+				node = mctsNode
+			}
 		} else {
-			mctsNode := MonteCarloTreeSearch(node, 5000)
-			mctsNode.GameState.Boards.PrintBoard()
-			node = mctsNode
+			if node.GameState.BlackTurn {
+				node.GameState.PrintBoardWithMoves()
+				blackMove := RequestMove(userIsBlack)
+				node = NextNodeFromInput(node, blackMove)
+			} else {
+				mctsNode := MonteCarloTreeSearch(node, 5000)
+				mctsNode.GameState.Boards.PrintBoard()
+				node = mctsNode
+			}
 		}
 	}
 	if node.IsTerminal() {
