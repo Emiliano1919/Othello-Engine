@@ -7,7 +7,14 @@ Uses a Bitboard implementation to optimize for simulation speed and therefore nu
 Uses Montecarlo Tree search to select the best move.
 
 Next features:
--1 AI will be able to play as not only black but also white
--2 Will have a nicer UI (not just terminal)
--3 Will have difficulty selection
--4 Will have a harder AI
+
+    - AI will be able to play as not only black but also white
+    - Will have a nicer UI (not just terminal)
+    - Will have difficulty selection
+    - Will have a harder AI
+
+Notes:
+It seems like whoever is black has an advantage on the game, it seems like the AI loses more easily if it is white rather than black.
+    Possible fixes:
+    - Add more compute in case that AI is white
+    - Modify the C parameter?
