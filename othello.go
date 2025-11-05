@@ -513,6 +513,7 @@ func (node *Node) Winner() int {
 	return WinnerState(node.GameState)
 }
 
+// Return an unexplored child of the current node
 func (node *Node) Expand() *Node {
 	if len(node.UntriedMoves) == 0 {
 		return nil
@@ -541,6 +542,7 @@ func (node *Node) Expand() *Node {
 	return child
 }
 
+// Traverse the Montecarlo tree
 func Traverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = BestUCT(node, float64(2))
@@ -551,6 +553,7 @@ func Traverse(node *Node) *Node {
 	return node.Expand()
 }
 
+// Choose best child to explore using UCT
 func BestUCT(node *Node, c float64) *Node {
 	var best *Node
 	bestUCT := float64(-1 << 63)
@@ -568,6 +571,8 @@ func BestUCT(node *Node, c float64) *Node {
 	return best
 }
 
+// Simulate randomly from current node to the end of the game (choosing randomly at each step)
+// The states explored here are not saved, only the result
 func SimulateRollout(state State) int {
 	current := state
 
@@ -595,6 +600,7 @@ func SimulateRollout(state State) int {
 	return WinnerState(current)
 }
 
+// Update visits and wins (A tie also counts as a win)
 func backpropagate(node *Node, result int) {
 	for node != nil {
 		node.Visits++
@@ -608,6 +614,7 @@ func backpropagate(node *Node, result int) {
 	}
 }
 
+// Selection of the best node  (The one with most visits) once MCTS has backpropagated
 func BestNodeFromMCTS(node *Node) *Node {
 	var bestNode *Node
 	maxVisits := -1
@@ -620,6 +627,7 @@ func BestNodeFromMCTS(node *Node) *Node {
 	return bestNode
 }
 
+// Montecarlo Tree search algorithm
 func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
@@ -640,8 +648,7 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 	return BestNodeFromMCTS(currentRoot)
 }
 
-// --- Example usage ---
-
+// Game loop
 func main() {
 	initialNode := InitialRootNode()
 	initialNode.GameState.Boards.PrintBoard()
