@@ -45,10 +45,19 @@ func (g *Game) UpdateStartScreen() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x > 50 && x < 200 && y > 200 && y < 250 { // Black button
+			initialNode := InitialRootNode()
+			g.node = initialNode
 			g.userIsBlack = true
 			g.state = StatePlaying
 			g.waitingForUser = true // Black moves first
+			// Calculate black's legal moves at start
+			g.legalMoves = generateMoves(
+				g.node.GameState.Boards.Black,
+				g.node.GameState.Boards.White,
+			)
 		} else if x > 50 && x < 200 && y > 300 && y < 350 { // White button
+			initialNode := InitialRootNode()
+			g.node = initialNode
 			g.userIsBlack = false
 			g.state = StatePlaying
 			g.waitingForUser = false
@@ -93,15 +102,26 @@ func (g *Game) Update() error {
 				}
 			}
 		} else {
-			// AI turn or initial setup
-			if !g.userIsBlack && g.node.GameState.BlackTurn {
-				g.node = MonteCarloTreeSearch(g.node, 5000)
+			if !g.userIsBlack {
+				if g.node.GameState.BlackTurn {
+					g.node = MonteCarloTreeSearch(g.node, 5000)
+				}
+				// Calculate the possible moves of the opponent if you pass the turn to them
+				if !g.node.GameState.BlackTurn {
+					g.legalMoves = generateMoves(g.node.GameState.Boards.White, g.node.GameState.Boards.Black)
+					g.waitingForUser = true
+				}
+			} else {
+				if !g.node.GameState.BlackTurn {
+					g.node = MonteCarloTreeSearch(g.node, 5000)
+				}
+				// Calculate the possible moves of the opponent if you pass the turn to them
+				if g.node.GameState.BlackTurn {
+					g.legalMoves = generateMoves(g.node.GameState.Boards.Black, g.node.GameState.Boards.White)
+					g.waitingForUser = true
+				}
 			}
 
-			if !g.userIsBlack && !g.node.GameState.BlackTurn {
-				g.legalMoves = generateMoves(g.node.GameState.Boards.White, g.node.GameState.Boards.Black)
-				g.waitingForUser = true
-			}
 		}
 
 		// Check if game is over
@@ -128,12 +148,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			g.boardImage = ebiten.NewImage(size, size)
 		}
 		g.node.GameState.Draw(g.boardImage)
-
 		if g.waitingForUser {
 			for i := 0; i < 64; i++ {
 				mask := uint64(1) << i
 				if g.legalMoves&mask != 0 {
-					drawDiskAtIndex(g.boardImage, i, whitePossibleDiskImg)
+					if !g.userIsBlack {
+						drawDiskAtIndex(g.boardImage, i, whitePossibleDiskImg)
+					} else {
+						drawDiskAtIndex(g.boardImage, i, blackPossibleDiskImg)
+					}
 				}
 			}
 		}
