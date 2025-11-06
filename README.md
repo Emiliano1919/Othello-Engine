@@ -14,7 +14,7 @@ Next features:
     - Will have a harder AI
 
 Notes:
-It seems like whoever is black has an advantage on the game, it seems like the AI loses more easily if it is white rather than black.
-    Possible fixes:
-    - Add more compute in case that AI is white
-    - Modify the C parameter?
+    It seems like whoever is black has an advantage on the game, it seems like the AI loses more easily if it is white rather than black.
+        Possible fixes:
+        - Add more compute in case that AI is white
+        - Modify the C parameter?
