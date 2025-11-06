@@ -63,14 +63,18 @@ func (node *Node) IsFullyExpanded() bool {
 	return len(node.UntriedMoves) == 0
 }
 
-
 func (node *Node) IsTerminal() bool {
 	// Check if black and white have remaining moves
 	// NOTE: CHECK HERE I THINK THE LOGIC MIGHT NOT BE FULLY CORRECT
 	return IsTerminalState(node.GameState)
 }
 
-
+// Return the current score of the node. Position 0 is black, position 1 is white
+func (node *Node) CurrentScore() [2]int {
+	blackScore := node.GameState.Boards.CountOfPieces(true)
+	whiteScore := node.GameState.Boards.CountOfPieces(false)
+	return [2]int{blackScore, whiteScore}
+}
 
 func (node *Node) Winner() int {
 	return WinnerState(node.GameState)

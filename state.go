@@ -44,7 +44,7 @@ func (b *Board) CellState(row, col int) CellState {
 	}
 }
 
-// Count the number of pieces on the black board
+// Count the number of pieces on any board
 func (b *Board) CountOfPieces(forBlack bool) int {
 	var n uint64
 	if forBlack {
