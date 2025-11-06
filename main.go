@@ -69,15 +69,22 @@ func (g *Game) UpdateEndScreen() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x > 50 && x < 200 && y > 200 && y < 250 { // Restart as Black
-			*g = *NewGame()
+			initialNode := InitialRootNode()
+			g.node = initialNode
 			g.userIsBlack = true
-			g.waitingForUser = true
 			g.state = StatePlaying
+			g.waitingForUser = true // Black moves first
+			// Calculate black's legal moves at start
+			g.legalMoves = generateMoves(
+				g.node.GameState.Boards.Black,
+				g.node.GameState.Boards.White,
+			)
 		} else if x > 50 && x < 200 && y > 300 && y < 350 { // Restart as White
-			*g = *NewGame()
+			initialNode := InitialRootNode()
+			g.node = initialNode
 			g.userIsBlack = false
-			g.waitingForUser = false
 			g.state = StatePlaying
+			g.waitingForUser = false
 		}
 	}
 }
