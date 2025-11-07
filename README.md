@@ -23,3 +23,5 @@ Notes:
         - Modify the C parameter?
 
     Actual root cause: The backpropagation algorithm is not taking into account if the machine is black or white, defaults to black. Therefore it is easier because technically the AI currently is choosing the moves that are more likely to make black win, even when the machine is white. The machine is acting against its own interests.
+
+    The problem has now been fixed. But it seems like the AI plays a kind of different strategy (I know it is just simulation and probability) when it plays white. It plays a long game, in my opinion.
