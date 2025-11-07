@@ -45,6 +45,17 @@ func Traverse(node *Node) *Node {
 	return node.Expand()
 }
 
+// Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
+func OriginalTraverse(node *Node) *Node {
+	for node.IsFullyExpanded() && !node.IsTerminal() {
+		node = OriginalBestUCT(node, float64(2))
+	}
+	if node.IsTerminal() {
+		return node
+	}
+	return node.Expand()
+}
+
 // Choose best child to explore using UCT
 func BestUCT(node *Node, c float64) *Node {
 	var best *Node
@@ -55,6 +66,24 @@ func BestUCT(node *Node, c float64) *Node {
 		C := math.Sqrt(c) // Theoretical value, will try to find a better one through self play
 		//UCTValue := C*explorationTerm + explotationTerm // This is the correct formula
 		UCTValue := explorationTerm + C*explotationTerm // Formula that produces better results but is not the usual
+
+		if UCTValue > bestUCT {
+			bestUCT = UCTValue
+			best = child
+		}
+	}
+	return best
+}
+
+// Choose best child to explore using UCT
+func OriginalBestUCT(node *Node, c float64) *Node {
+	var best *Node
+	bestUCT := float64(-1 << 63)
+	for _, child := range node.Children {
+		explotationTerm := float64(child.Wins) / float64(child.Visits)
+		explorationTerm := math.Sqrt(math.Log(float64(node.Visits)) / float64(child.Visits))
+		C := math.Sqrt(c)                               // Theoretical value, will try to find a better one through self play
+		UCTValue := C*explorationTerm + explotationTerm // This is the correct formula
 
 		if UCTValue > bestUCT {
 			bestUCT = UCTValue
