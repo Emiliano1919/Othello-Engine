@@ -2,7 +2,6 @@ package main
 
 import "fmt"
 
-
 // PrintBoard prints the board in a readable 8×8 grid.
 func (b *Board) PrintBoard() {
 	fmt.Println()
@@ -94,7 +93,7 @@ func RequestMove(userIsBlack bool) [2]int {
 		color = "black"
 	}
 
-	fmt.Printf("Enter your move %s (e.g., 3 7): ", color)
+	fmt.Printf("Enter your move %s (e.g., 6 7): ", color)
 	_, err := fmt.Scanf("%d %d", &arr[0], &arr[1])
 	if err != nil {
 		fmt.Println("Error:", err)
