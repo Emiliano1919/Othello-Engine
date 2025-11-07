@@ -52,8 +52,8 @@ func BestUCT(node *Node, c float64) *Node {
 	for _, child := range node.Children {
 		explotationTerm := float64(child.Wins) / float64(child.Visits)
 		explorationTerm := math.Sqrt(math.Log(float64(node.Visits)) / float64(child.Visits))
-		C := math.Sqrt(c) // Theoretical value, will try to find a better one through self play
-		UCTValue := explorationTerm + C*explotationTerm
+		C := math.Sqrt(c)                               // Theoretical value, will try to find a better one through self play
+		UCTValue := explorationTerm + C*explotationTerm // This is not correct the formula
 
 		if UCTValue > bestUCT {
 			bestUCT = UCTValue
@@ -142,7 +142,7 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, userIsBlack bool) *
 		leaf := Traverse(currentRoot)
 		var nodeToSimulateFrom *Node
 		if len(leaf.UntriedMoves) > 0 {
-			child := leaf.Expand()
+			child := leaf.Expand() // This is a double expansion which is not in the normal implementation
 			nodeToSimulateFrom = child
 		} else {
 			nodeToSimulateFrom = leaf
