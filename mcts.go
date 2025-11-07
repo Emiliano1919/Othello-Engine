@@ -34,7 +34,7 @@ func (node *Node) Expand() *Node {
 	return child
 }
 
-// Traverse the Montecarlo tree
+// Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
 func Traverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = BestUCT(node, float64(2))
