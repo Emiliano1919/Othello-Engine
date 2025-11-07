@@ -76,6 +76,6 @@ func (node *Node) CurrentScore() [2]int {
 	return [2]int{blackScore, whiteScore}
 }
 
-func (node *Node) Winner() int {
+func (node *Node) Winner() WinState {
 	return WinnerState(node.GameState)
 }

@@ -20,6 +20,15 @@ const (
 	CELL_EMPTY
 )
 
+// New Winstate to avoid incorrect comparisons and modifications
+type WinState int
+
+const (
+	WHITE_WIN WinState = iota
+	BLACK_WIN
+	DRAW
+)
+
 // --- Core Board Methods ---
 
 // CellState returns the state of the cell at (row, col).
@@ -259,12 +268,12 @@ func IsTerminalState(state State) bool {
 	return state.Boards.HasValidMove(true) == false && state.Boards.HasValidMove(false) == false
 }
 
-func WinnerState(state State) int {
+func WinnerState(state State) WinState {
 	if state.Boards.CountOfPieces(true) > state.Boards.CountOfPieces(false) {
-		return 1 // Black wins
+		return BLACK_WIN // Black wins
 	} else if state.Boards.CountOfPieces(true) < state.Boards.CountOfPieces(false) {
-		return 0 // White wins
+		return WHITE_WIN // White wins
 	} else {
-		return 2 // Draw
+		return DRAW // Draw
 	}
 }

@@ -25,20 +25,11 @@ const (
 
 type Game struct {
 	node           *Node
-	userIsBlack    bool
 	boardImage     *ebiten.Image
 	waitingForUser bool   // We use this to keep the asynchronous code out of the loop
 	legalMoves     uint64 // We put it here because we calculate it at the end of the machine turn
 	state          GamePhase
-}
-
-func NewGame() *Game {
-	initialNode := InitialRootNode()
-	return &Game{
-		node:  initialNode,
-		state: StateStartScreen, // Start with the start screen
-		// userIsBlack is not set yet; will be set by user's choice
-	}
+	userIsBlack    bool
 }
 
 func (g *Game) UpdateStartScreen() {
@@ -111,7 +102,7 @@ func (g *Game) Update() error {
 		} else {
 			if !g.userIsBlack {
 				if g.node.GameState.BlackTurn {
-					g.node = MonteCarloTreeSearch(g.node, 5000)
+					g.node = MonteCarloTreeSearch(g.node, 5000, g.userIsBlack)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if !g.node.GameState.BlackTurn {
@@ -120,7 +111,7 @@ func (g *Game) Update() error {
 				}
 			} else {
 				if !g.node.GameState.BlackTurn {
-					g.node = MonteCarloTreeSearch(g.node, 5000)
+					g.node = MonteCarloTreeSearch(g.node, 5000, g.userIsBlack)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if g.node.GameState.BlackTurn {
@@ -190,7 +181,8 @@ func main() {
 	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
 	size := boardSize*tileSize + (boardSize+1)*tileMargin
 	ebiten.SetWindowSize(size, size)
-	if err := ebiten.RunGame(NewGame()); err != nil {
+	game := &Game{}
+	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -202,7 +194,7 @@ func main() {
 // 	userIsBlack := RequestUserIsBlack()
 // 	var node *Node
 // 	if !userIsBlack {
-// 		bestOpening := MonteCarloTreeSearch(initialNode, 5000)
+// 		bestOpening := MonteCarloTreeSearch(initialNode, 5000,userIsBlack)
 // 		bestOpening.GameState.Boards.PrintBoard()
 // 		node = bestOpening
 // 	} else {
@@ -217,7 +209,7 @@ func main() {
 // 				whiteMove := RequestMove(userIsBlack)
 // 				node = NextNodeFromInput(node, whiteMove)
 // 			} else {
-// 				mctsNode := MonteCarloTreeSearch(node, 5000)
+// 				mctsNode := MonteCarloTreeSearch(node, 5000,userIsBlack)
 // 				mctsNode.GameState.Boards.PrintBoard()
 // 				node = mctsNode
 // 			}
@@ -227,7 +219,7 @@ func main() {
 // 				blackMove := RequestMove(userIsBlack)
 // 				node = NextNodeFromInput(node, blackMove)
 // 			} else {
-// 				mctsNode := MonteCarloTreeSearch(node, 5000)
+// 				mctsNode := MonteCarloTreeSearch(node, 5000,userIsBlack)
 // 				mctsNode.GameState.Boards.PrintBoard()
 // 				node = mctsNode
 // 			}

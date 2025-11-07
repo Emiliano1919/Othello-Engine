@@ -65,7 +65,7 @@ func BestUCT(node *Node, c float64) *Node {
 
 // Simulate randomly from current node to the end of the game (choosing randomly at each step)
 // The states explored here are not saved, only the result
-func SimulateRollout(state State) int {
+func SimulateRollout(state State) WinState {
 	current := state
 
 	for !IsTerminalState(current) {
@@ -93,14 +93,28 @@ func SimulateRollout(state State) int {
 }
 
 // Update visits and wins (A tie also counts as a win)
-func Backpropagate(node *Node, result int) {
+func Backpropagate(node *Node, result WinState, userIsBlack bool) {
 	for node != nil {
 		node.Visits++
-		// Will have to fix this here,a dn take into account the turn correctly
-		if result == 2 {
-			node.Wins += 1
+
+		if userIsBlack {
+			switch result {
+			case WHITE_WIN:
+				node.Wins += 1 // If the machine is white optimize for white
+			case BLACK_WIN:
+				node.Wins += 0
+			case DRAW:
+				node.Wins += 1
+			}
 		} else {
-			node.Wins += result // We are technically speaking just accounting for black
+			switch result {
+			case WHITE_WIN:
+				node.Wins += 0
+			case BLACK_WIN:
+				node.Wins += 1 // Otherwise optmize for draw
+			case DRAW:
+				node.Wins += 1
+			}
 		}
 		node = node.Parent
 	}
@@ -120,7 +134,7 @@ func BestNodeFromMCTS(node *Node) *Node {
 }
 
 // Montecarlo Tree search algorithm
-func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
+func MonteCarloTreeSearch(currentRoot *Node, iterations int, userIsBlack bool) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
@@ -135,7 +149,7 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 		}
 
 		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		Backpropagate(nodeToSimulateFrom, result)
+		Backpropagate(nodeToSimulateFrom, result, userIsBlack)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
