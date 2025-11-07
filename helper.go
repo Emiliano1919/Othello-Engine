@@ -2,7 +2,6 @@ package main
 
 import "fmt"
 
-// --- Debug / Display Helpers ---
 
 // PrintBoard prints the board in a readable 8×8 grid.
 func (b *Board) PrintBoard() {

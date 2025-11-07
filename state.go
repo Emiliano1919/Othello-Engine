@@ -95,8 +95,7 @@ func (b *Board) Init() {
 	b.SetCellState(4, 4, CELL_WHITE)
 }
 
-// --- Bit Shifting for Directions ---
-
+// Cardinal directions you can shift to (horizontal, vertical, and diagonals)
 const NUM_DIRS = 8
 
 // shift moves all bits in `disks` one step in the given direction.
@@ -243,7 +242,6 @@ func resolveMove(myDisks, oppDisks *uint64, moveIndex int) {
 /*
 Given a position and a board execute the move.
 */
-
 func (b *Board) MakeMove(forBlack bool, row, col int) {
 	if !b.IsValidMove(forBlack, row, col) {
 		panic("invalid move")
