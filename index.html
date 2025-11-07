@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script src="wasm_exec.js"></script>
+    <script>
+      const go = new Go();
+      WebAssembly.instantiateStreaming(fetch("Othello-Engine.wasm"), go.importObject)
+        .then(result => go.run(result.instance));
+    </script>
+  </body>
+</html>
