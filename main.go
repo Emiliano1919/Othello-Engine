@@ -198,38 +198,38 @@ func main() {
 	if !OpponentIsBlack {
 		nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OpponentIsBlack)
 		nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
-		nodeP2.GameState.Boards.PrintBoard()
+		//nodeP2.GameState.Boards.PrintBoard()
 	} else {
 		nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, !OpponentIsBlack)
 		nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
-		nodeP1.GameState.Boards.PrintBoard()
+		// nodeP1.GameState.Boards.PrintBoard()
 	}
 	for !nodeP1.IsTerminal() {
 		if !OpponentIsBlack {
 			if !nodeP1.GameState.BlackTurn {
 				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
 				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-				nodeP1.GameState.Boards.PrintBoard()
+				//nodeP1.GameState.Boards.PrintBoard()
 			} else {
 				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
 				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-				nodeP2.GameState.Boards.PrintBoard()
+				//nodeP2.GameState.Boards.PrintBoard()
 			}
 		} else {
 			if nodeP1.GameState.BlackTurn {
 				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
 				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-				nodeP1.GameState.Boards.PrintBoard()
+				//nodeP1.GameState.Boards.PrintBoard()
 			} else {
 				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
 				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-				nodeP2.GameState.Boards.PrintBoard()
+				//nodeP2.GameState.Boards.PrintBoard()
 			}
 		}
 	}
 	if nodeP1.IsTerminal() {
-		OutputResult(nodeP1)
-		OutputResult(nodeP2)
+		//OutputResult(nodeP1)
+		//OutputResult(nodeP2)
 	}
 
 }
