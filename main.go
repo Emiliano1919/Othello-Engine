@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -177,17 +176,59 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return size, size
 }
 
+// Visual Main
+//
+//	func main() {
+//		ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
+//		size := boardSize*tileSize + (boardSize+1)*tileMargin
+//		ebiten.SetWindowSize(size, size)
+//		game := &Game{}
+//		if err := ebiten.RunGame(game); err != nil {
+//			log.Fatal(err)
+//		}
+//	}
+//
+// Versus main
 func main() {
-	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
-	size := boardSize*tileSize + (boardSize+1)*tileMargin
-	ebiten.SetWindowSize(size, size)
-	game := &Game{}
-	if err := ebiten.RunGame(game); err != nil {
-		log.Fatal(err)
+	initialNodeP1 := InitialRootNode()
+	initialNodeP2 := InitialRootNode()
+	P2IsBlack := false // Which model is Black vs Which model is White
+	var nodeP1 *Node
+	var nodeP2 *Node
+	if !P2IsBlack {
+		bestOpening := OriginalMonteCarloTreeSearch(initialNodeP1, 5000, P2IsBlack)
+		bestOpening.GameState.Boards.PrintBoard()
+		nodeP1 = bestOpening
+		nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
+		nodeP2.GameState.Boards.PrintBoard()
+	} else {
+		bestOpening := MonteCarloTreeSearch(initialNodeP2, 5000, P2IsBlack)
+		nodeP2 = bestOpening
+		nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
 	}
+	for !nodeP1.IsTerminal() {
+		if !P2IsBlack {
+			if !nodeP1.GameState.BlackTurn {
+				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !P2IsBlack)
+				nodeP2.GameState.Boards.PrintBoard()
+				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+				nodeP1.GameState.Boards.PrintBoard()
+			} else {
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, P2IsBlack)
+				nodeP1.GameState.Boards.PrintBoard()
+				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+				nodeP2.GameState.Boards.PrintBoard()
+			}
+		}
+	}
+	if nodeP1.IsTerminal() {
+		OutputResult(nodeP1)
+		OutputResult(nodeP2)
+	}
+
 }
 
-// // Game loop
+// Debugging Main
 // func main() {
 // 	initialNode := InitialRootNode()
 // 	initialNode.GameState.Boards.PrintBoard()
