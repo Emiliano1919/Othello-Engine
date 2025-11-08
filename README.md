@@ -28,7 +28,13 @@ Notes:
 
 Current Ideas:
 - Implement a way to test 2 AIs against each other, so that they can be benchmarked
+    - Then once it is confirmed that the erroneous implementation is better, try to think why is it better
 - Implement leaf or root parallelization (Hopefully this will be straightforward)
 - Create a Neural Network that analyzes the current leaf to see how it will play out (maybe through self play maybe through a dataset)
 - Replace UCT with other methods seen in previous research paper
+    - Ask for questions to the respective creators of the evaluation functions (?)
 - Get EDAX or Egaroucid running to test the game
+- Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
+- At endgame, run another Algorithm instead of MCTS maybe Minimax (The depth should be small enough to get the actual best move)
+
+- Implement NegaScout Algorithm (?)
