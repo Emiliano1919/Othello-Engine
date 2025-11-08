@@ -38,3 +38,10 @@ Current Ideas:
 - At endgame, run another Algorithm instead of MCTS maybe Minimax (The depth should be small enough to get the actual best move)
 
 - Implement NegaScout Algorithm (?)
+
+Current Results:
+
+With my double expansion greedy MCTS as black out of 100 games this was the result against the Original MCTS with UCT:
+Opponent Wins: 61
+Draws: 4
+Total Games ran: 100
