@@ -192,7 +192,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	initialNodeP1 := InitialRootNode()
 	initialNodeP2 := InitialRootNode()
-	P2IsBlack := false // Which model is Black vs Which model is White
+	P2IsBlack := true // Which model is Black vs Which model is White
 	var nodeP1 *Node
 	var nodeP2 *Node
 	if !P2IsBlack {
@@ -209,6 +209,18 @@ func main() {
 	for !nodeP1.IsTerminal() {
 		if !P2IsBlack {
 			if !nodeP1.GameState.BlackTurn {
+				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !P2IsBlack)
+				nodeP2.GameState.Boards.PrintBoard()
+				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+				nodeP1.GameState.Boards.PrintBoard()
+			} else {
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, P2IsBlack)
+				nodeP1.GameState.Boards.PrintBoard()
+				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+				nodeP2.GameState.Boards.PrintBoard()
+			}
+		} else {
+			if nodeP1.GameState.BlackTurn {
 				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !P2IsBlack)
 				nodeP2.GameState.Boards.PrintBoard()
 				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
