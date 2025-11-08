@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 // Node struct and methods
 
 type Node struct {
@@ -35,7 +33,7 @@ func NextNodeFromInput(parent *Node, move [2]int) *Node {
 	}
 	// Switch turn but conditionally to deal with edgecase of the opponent having no moves.
 	if !newState.Boards.HasValidMove(newState.BlackTurn) && newState.Boards.HasValidMove(!newState.BlackTurn) {
-		fmt.Println("No valid moves for next player — passing turn back.")
+		//fmt.Println("No valid moves for next player — passing turn back.")
 		newState.BlackTurn = !newState.BlackTurn
 	}
 	return NewNode(newState, parent, move)

@@ -190,47 +190,70 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 //
 // Versus main
 func main() {
-	initialNodeP1 := InitialRootNode()
-	initialNodeP2 := InitialRootNode()
-	OpponentIsBlack := true // Is the opponent of baseline black?
-	var nodeP1 *Node
-	var nodeP2 *Node
-	if !OpponentIsBlack {
-		nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OpponentIsBlack)
-		nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
-		//nodeP2.GameState.Boards.PrintBoard()
-	} else {
-		nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, !OpponentIsBlack)
-		nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
-		// nodeP1.GameState.Boards.PrintBoard()
-	}
-	for !nodeP1.IsTerminal() {
+	OpponentWinCounter := 0
+	DrawsCounter := 0
+	Games := 100
+	for i := 0; i < Games; i++ {
+		// Each AI needs its own tree, so that they do not share knowledge and influence the other
+		// But they will update each other of their respective moves
+		initialNodeP1 := InitialRootNode()
+		initialNodeP2 := InitialRootNode()
+		OpponentIsBlack := true // Is the opponent of baseline black?
+		var nodeP1 *Node
+		var nodeP2 *Node
 		if !OpponentIsBlack {
-			if !nodeP1.GameState.BlackTurn {
-				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
-				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-				//nodeP1.GameState.Boards.PrintBoard()
-			} else {
-				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
-				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-				//nodeP2.GameState.Boards.PrintBoard()
-			}
+			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OpponentIsBlack)
+			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
+			//nodeP2.GameState.Boards.PrintBoard()
 		} else {
-			if nodeP1.GameState.BlackTurn {
-				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
-				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-				//nodeP1.GameState.Boards.PrintBoard()
+			nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, !OpponentIsBlack)
+			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
+			// nodeP1.GameState.Boards.PrintBoard()
+		}
+		for !nodeP1.IsTerminal() { // This works because both nodes update each other
+			if !OpponentIsBlack {
+				if !nodeP1.GameState.BlackTurn {
+					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
+					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+					//nodeP1.GameState.Boards.PrintBoard()
+				} else {
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
+					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+					//nodeP2.GameState.Boards.PrintBoard()
+				}
 			} else {
-				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
-				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-				//nodeP2.GameState.Boards.PrintBoard()
+				if nodeP1.GameState.BlackTurn {
+					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
+					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+					//nodeP1.GameState.Boards.PrintBoard()
+				} else {
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
+					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+					//nodeP2.GameState.Boards.PrintBoard()
+				}
 			}
 		}
+		if nodeP1.IsTerminal() {
+			//OutputResult(nodeP1)
+			//OutputResult(nodeP2)
+			switch nodeP1.Winner() {
+			case BLACK_WIN:
+				if OpponentIsBlack {
+					OpponentWinCounter++
+				}
+			case WHITE_WIN:
+				if !OpponentIsBlack {
+					OpponentWinCounter++
+				}
+			case DRAW:
+				DrawsCounter++
+			}
+		}
+		fmt.Println("Finalized game: %d", i)
 	}
-	if nodeP1.IsTerminal() {
-		//OutputResult(nodeP1)
-		//OutputResult(nodeP2)
-	}
+	fmt.Printf("Opponent Wins: %d\n", OpponentWinCounter)
+	fmt.Printf("Draws: %d\n", DrawsCounter)
+	fmt.Printf("Total Games ran: %d\n", Games)
 
 }
 
