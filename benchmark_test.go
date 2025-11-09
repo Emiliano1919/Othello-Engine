@@ -7,7 +7,7 @@ import (
 func BenchmarkMonteCarloTreeSearc(b *testing.B) {
 	node := InitialRootNode()
 	for b.Loop() {
-		MonteCarloTreeSearch(node, 500, true)
+		MonteCarloTreeSearch(node, 500, OPTIMIZE_FOR_BLACK)
 	}
 }
 
@@ -31,7 +31,7 @@ func BenchmarkMonteCarloTreeSearchParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			nodePM := InitialRootNode()
-			MonteCarloTreeSearch(nodePM, 500, true)
+			MonteCarloTreeSearch(nodePM, 500, OPTIMIZE_FOR_BLACK)
 		}
 	})
 }

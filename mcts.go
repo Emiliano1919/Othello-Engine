@@ -5,6 +5,14 @@ import (
 	"math/rand"
 )
 
+// New OptimizeFor... to increase Clarity
+type OptimizeFor int
+
+const (
+	OPTIMIZE_FOR_BLACK OptimizeFor = iota
+	OPTIMIZE_FOR_WHITE
+)
+
 // Return an unexplored child of the current node
 func (node *Node) Expand() *Node {
 	if len(node.UntriedMoves) == 0 {
@@ -123,25 +131,25 @@ func SimulateRollout(state State) WinState {
 }
 
 // Update visits and wins (A tie also counts as a win)
-func Backpropagate(node *Node, result WinState, userIsBlack bool) {
+func Backpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 	for node != nil {
 		node.Visits++
-
-		if userIsBlack {
-			switch result {
-			case WHITE_WIN:
-				node.Wins += 1 // If the machine is white optimize for white
-			case BLACK_WIN:
-				node.Wins += 0
-			case DRAW:
-				node.Wins += 1
-			}
-		} else {
+		switch optimizeFor {
+		case OPTIMIZE_FOR_BLACK:
 			switch result {
 			case WHITE_WIN:
 				node.Wins += 0
 			case BLACK_WIN:
 				node.Wins += 1 // Otherwise optmize for draw
+			case DRAW:
+				node.Wins += 1
+			}
+		case OPTIMIZE_FOR_WHITE:
+			switch result {
+			case WHITE_WIN:
+				node.Wins += 1 // If the machine is white optimize for white
+			case BLACK_WIN:
+				node.Wins += 0
 			case DRAW:
 				node.Wins += 1
 			}
@@ -164,7 +172,7 @@ func BestNodeFromMCTS(node *Node) *Node {
 }
 
 // Montecarlo Tree search algorithm
-func MonteCarloTreeSearch(currentRoot *Node, iterations int, userIsBlack bool) *Node {
+func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
@@ -179,20 +187,20 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, userIsBlack bool) *
 		}
 
 		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		Backpropagate(nodeToSimulateFrom, result, userIsBlack)
+		Backpropagate(nodeToSimulateFrom, result, optimizeFor)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
 
 // Montecarlo Tree Search Implemented correctly
-func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, userIsBlack bool) *Node {
+func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
-		nodeToSimulateFrom := Traverse(currentRoot) // Select and Expand are coded in Traverse
+		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
 		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		Backpropagate(nodeToSimulateFrom, result, userIsBlack)
+		Backpropagate(nodeToSimulateFrom, result, optimizeFor)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }

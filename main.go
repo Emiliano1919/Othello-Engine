@@ -102,7 +102,7 @@ func (g *Game) Update() error {
 		} else {
 			if !g.userIsBlack {
 				if g.node.GameState.BlackTurn {
-					g.node = MonteCarloTreeSearch(g.node, 5000, g.userIsBlack)
+					g.node = MonteCarloTreeSearch(g.node, 5000, OPTIMIZE_FOR_BLACK)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if !g.node.GameState.BlackTurn {
@@ -111,7 +111,7 @@ func (g *Game) Update() error {
 				}
 			} else {
 				if !g.node.GameState.BlackTurn {
-					g.node = MonteCarloTreeSearch(g.node, 5000, g.userIsBlack)
+					g.node = MonteCarloTreeSearch(g.node, 5000, OPTIMIZE_FOR_WHITE)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if g.node.GameState.BlackTurn {
@@ -204,32 +204,32 @@ func main() {
 		var nodeP1 *Node
 		var nodeP2 *Node
 		if !OpponentIsBlack {
-			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OpponentIsBlack)
+			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OPTIMIZE_FOR_BLACK)
 			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
 			//nodeP2.GameState.Boards.PrintBoard()
 		} else {
-			nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, !OpponentIsBlack)
+			nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, OPTIMIZE_FOR_BLACK)
 			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
 			// nodeP1.GameState.Boards.PrintBoard()
 		}
 		for !nodeP1.IsTerminal() { // This works because both nodes update each other
 			if !OpponentIsBlack {
 				if !nodeP1.GameState.BlackTurn {
-					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
+					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, OPTIMIZE_FOR_WHITE)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OPTIMIZE_FOR_BLACK)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
 			} else {
 				if nodeP1.GameState.BlackTurn {
-					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, !OpponentIsBlack)
+					nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, OPTIMIZE_FOR_BLACK)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OpponentIsBlack)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OPTIMIZE_FOR_WHITE)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
