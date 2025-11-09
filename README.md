@@ -36,12 +36,22 @@ Current Ideas:
 - Get EDAX or Egaroucid running to test the game
 - Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
 - At endgame, run another Algorithm instead of MCTS maybe Minimax (The depth should be small enough to get the actual best move)
+- When calling NextNodeFromInput we create a new node, but maybe we can take a node that already exists, if it is kept in the tree. This way we are saving the information gained from the backpropagation that has reached that node.
 
 - Implement NegaScout Algorithm (?)
 
 Current Results:
 
-With my double expansion greedy MCTS as black out of 100 games this was the result against the Original MCTS with UCT:
-Opponent Wins: 61
-Draws: 4
-Total Games ran: 100
+With my double expansion greedy MCTS as the opponent (black) out of 100 games this was the result against the Original MCTS with UCT
+    Opponent Wins: 61
+    Draws: 4
+    Total Games ran: 100
+So it seems it is actually better than the normal MCTS, but the output for my algorithm as the opponent (white) was
+    Opponent Wins: 31
+    Draws: 4
+    Total Games ran: 100
+    Total run time for all the games: 19m0.365755959s% 
+So it is worse in this case. I actually suspect this is a bug the ratio looks flipped. I will investigate. 
+
+This simulations take some time to run. Parallelization now seems like a necessary improvement to run the code at a faster speed. The code also needs some improvements, userIsBlack is confusing to use as a variable when running 2 algorithms.
+Note: Both algorithms were doing 5000 rollouts at each leaf Node.

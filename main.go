@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -190,6 +191,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 //
 // Versus main
 func main() {
+	start := time.Now()
 	OpponentWinCounter := 0
 	DrawsCounter := 0
 	Games := 100
@@ -198,7 +200,7 @@ func main() {
 		// But they will update each other of their respective moves
 		initialNodeP1 := InitialRootNode()
 		initialNodeP2 := InitialRootNode()
-		OpponentIsBlack := true // Is the opponent of baseline black?
+		OpponentIsBlack := false // Is the opponent of baseline black?
 		var nodeP1 *Node
 		var nodeP2 *Node
 		if !OpponentIsBlack {
@@ -249,11 +251,13 @@ func main() {
 				DrawsCounter++
 			}
 		}
-		fmt.Println("Finalized game: %d", i)
+		fmt.Printf("Number of finalized games: %d\n", i+1)
 	}
+	elapsed := time.Since(start)
 	fmt.Printf("Opponent Wins: %d\n", OpponentWinCounter)
 	fmt.Printf("Draws: %d\n", DrawsCounter)
 	fmt.Printf("Total Games ran: %d\n", Games)
+	fmt.Printf("Total run time for all the games: %s", elapsed)
 
 }
 
