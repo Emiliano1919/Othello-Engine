@@ -90,12 +90,12 @@ func (g *Game) Update() error {
 			// human turn
 			if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 				x, y := ebiten.CursorPosition()
-				col := x / (tileSize + tileMargin)
-				row := y / (tileSize + tileMargin)
+				col := uint8(x / (tileSize + tileMargin))
+				row := uint8(y / (tileSize + tileMargin))
 				mask := uint64(1) << (row*8 + col)
 
 				if g.legalMoves&mask != 0 {
-					g.node = NextNodeFromInput(g.node, [2]int{row, col})
+					g.node = NextNodeFromInput(g.node, [2]uint8{row, col})
 					g.waitingForUser = false
 				}
 			}
@@ -242,7 +242,7 @@ func main() {
 		// But they will update each other of their respective moves
 		initialNodeP1 := InitialRootNode()
 		initialNodeP2 := InitialRootNode()
-		OpponentIsBlack := false // Is the opponent of baseline black?
+		OpponentIsBlack := true // Is the opponent of baseline black?
 		var nodeP1 *Node
 		var nodeP2 *Node
 		if !OpponentIsBlack {

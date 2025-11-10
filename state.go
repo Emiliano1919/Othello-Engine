@@ -176,13 +176,13 @@ func generateMoves(myDisks, oppDisks uint64) uint64 {
 }
 
 // Get a sorted array of the legal move locations in the board
-func ArrayOfMoves(legalMoves uint64) []int {
-	var res []int
+func ArrayOfMoves(legalMoves uint64) []uint8 {
+	var res []uint8
 	for row := 0; row < 8; row++ {
 		for col := 0; col < 8; col++ {
 			mask := uint64(1) << (row*8 + col)
 			if mask&legalMoves != 0 {
-				res = append(res, row*8+col)
+				res = append(res, uint8(row*8+col))
 			}
 		}
 	}
@@ -190,12 +190,12 @@ func ArrayOfMoves(legalMoves uint64) []int {
 }
 
 // Get a sorted array of the legal move locations in row column format in the board
-func ArrayOfPositionalMoves(legalMoves []int) [][2]int {
-	var res [][2]int
+func ArrayOfPositionalMoves(legalMoves []uint8) [][2]uint8 {
+	var res [][2]uint8
 	for _, move := range legalMoves {
-		row := move / 8
-		col := move % 8
-		res = append(res, [2]int{row, col})
+		row := uint8(move / 8)
+		col := uint8(move % 8)
+		res = append(res, [2]uint8{row, col})
 	}
 	return res
 }
@@ -214,7 +214,7 @@ func (b *Board) HasValidMove(forBlack bool) bool {
 
 // We achieve this using masks
 */
-func (b *Board) IsValidMove(forBlack bool, row, col int) bool {
+func (b *Board) IsValidMove(forBlack bool, row, col uint8) bool {
 	mask := uint64(1) << (row*8 + col) // Generate a mask where the 1 is placed where the move is what we want to verify
 	if forBlack {
 		return generateMoves(b.Black, b.White)&mask != 0
@@ -226,7 +226,7 @@ func (b *Board) IsValidMove(forBlack bool, row, col int) bool {
 Once a move is made we update the board (the sandwhiched disks need to change colors)
 moveIndex should be a number that represents a position in the uint64 so it can range from 0 to 63
 */
-func resolveMove(myDisks, oppDisks *uint64, moveIndex int) {
+func resolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
 	newDisk := uint64(1) << moveIndex
 	var captured uint64
 
@@ -251,7 +251,7 @@ func resolveMove(myDisks, oppDisks *uint64, moveIndex int) {
 /*
 Given a position and a board execute the move.
 */
-func (b *Board) MakeMove(forBlack bool, row, col int) {
+func (b *Board) MakeMove(forBlack bool, row, col uint8) {
 	if !b.IsValidMove(forBlack, row, col) {
 		panic("invalid move")
 	}

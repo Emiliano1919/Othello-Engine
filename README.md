@@ -67,16 +67,15 @@ This simulations take some time to run. Parallelization now seems like a necessa
 Note: Both algorithms were doing 5000 rollouts at each leaf Node.
 
 Current Benchmark results:
-
         goos: darwin
         goarch: arm64
         pkg: othello
         cpu: Apple M1
-        BenchmarkMonteCarloTreeSearc-8            	      28	  38764378 ns/op	15192498 B/op	  237820 allocs/op
-        BenchmarkRollout-8                        	   14596	     82280 ns/op	   31652 B/op	     511 allocs/op
-        BenchmarkRolloutParallel-8                	   51783	     22911 ns/op	   31647 B/op	     511 allocs/op
-        BenchmarkMonteCarloTreeSearchParallel-8   	     108	  10429961 ns/op	15499580 B/op	  245905 allocs/op
-        BenchmarkInitialNodeCreationParallel-8    	 8293948	       139.4 ns/op	     280 B/op	       7 allocs/op
+        BenchmarkMonteCarloTreeSearc-8            	      32	  34703569 ns/op	 1709309 B/op	  110738 allocs/op
+        BenchmarkRollout-8                        	   16146	     74191 ns/op	    3315 B/op	     232 allocs/op
+        BenchmarkRolloutParallel-8                	   81868	     15022 ns/op	    3313 B/op	     232 allocs/op
+        BenchmarkMonteCarloTreeSearchParallel-8   	     145	   7361030 ns/op	 1740413 B/op	  113845 allocs/op
+        BenchmarkInitialNodeCreationParallel-8    	11684953	       101.2 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                         	       1	10628987833 ns/op	465059776 B/op	31064478 allocs/op
         PASS
-        ok  	othello	6.944s
-
+        ok  	othello	17.534s

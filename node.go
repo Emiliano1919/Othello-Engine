@@ -7,9 +7,9 @@ type Node struct {
 	Wins         int
 	Parent       *Node
 	Children     []*Node
-	GameState    State  // Current boards with whose turn is it to move
-	Move         [2]int // The move that led us here
-	UntriedMoves [][2]int
+	GameState    State    // Current boards with whose turn is it to move
+	Move         [2]uint8 // The move that led us here
+	UntriedMoves [][2]uint8
 }
 
 func InitialRootNode() *Node {
@@ -19,12 +19,12 @@ func InitialRootNode() *Node {
 	var state State
 	state.Boards = boards
 	state.BlackTurn = true
-	var empty [2]int
+	var empty [2]uint8
 	node = NewNode(state, nil, empty)
 	return node
 }
 
-func NextNodeFromInput(parent *Node, move [2]int) *Node {
+func NextNodeFromInput(parent *Node, move [2]uint8) *Node {
 	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
 	for _, child := range parent.Children {
 		if child.Move == move {
@@ -46,7 +46,7 @@ func NextNodeFromInput(parent *Node, move [2]int) *Node {
 	return NewNode(newState, parent, move)
 }
 
-func NewNode(state State, parent *Node, move [2]int) *Node {
+func NewNode(state State, parent *Node, move [2]uint8) *Node {
 	var legalMoves uint64
 	if state.BlackTurn {
 		legalMoves = generateMoves(state.Boards.Black, state.Boards.White)
