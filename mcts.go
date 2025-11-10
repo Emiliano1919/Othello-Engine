@@ -145,14 +145,49 @@ func Backpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 				node.Wins += 1
 			}
 		case OPTIMIZE_FOR_WHITE:
-			switch result {
-			case WHITE_WIN:
-				node.Wins += 1 // If the machine is white optimize for white
-			case BLACK_WIN:
-				node.Wins += 0
-			case DRAW:
-				node.Wins += 1
+			if node.Parent != nil && !node.Parent.GameState.BlackTurn {
+				switch result {
+				case WHITE_WIN:
+					node.Wins += 2 // If the machine is white optimize for white
+				case BLACK_WIN:
+					node.Wins += 0
+				case DRAW:
+					node.Wins += 1
+				}
 			}
+		}
+		node = node.Parent
+	}
+}
+
+// Update visits and wins (A tie also counts as a win)
+func OriginalBackpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
+	for node != nil {
+		node.Visits++
+		switch optimizeFor {
+		case OPTIMIZE_FOR_BLACK:
+			if node.Parent != nil && node.Parent.GameState.BlackTurn {
+				switch result {
+				case WHITE_WIN:
+					node.Wins += 0
+				case BLACK_WIN:
+					node.Wins += 1 // Otherwise optmize for draw
+				case DRAW:
+					node.Wins += 1
+				}
+			}
+		case OPTIMIZE_FOR_WHITE:
+			if node.Parent != nil && !node.Parent.GameState.BlackTurn {
+				switch result {
+				case WHITE_WIN:
+					node.Wins += 1 // If the machine is white optimize for white
+				case BLACK_WIN:
+					node.Wins += 0
+				case DRAW:
+					node.Wins += 1
+				}
+			}
+
 		}
 		node = node.Parent
 	}
@@ -176,19 +211,28 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor Optimiz
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
-	for i := 0; i < iterations; i++ {
-		leaf := Traverse(currentRoot) // Select and Expand are coded in Traverse
-		var nodeToSimulateFrom *Node
-		if len(leaf.UntriedMoves) > 0 {
-			child := leaf.Expand() // This is a double expansion which is not in the normal implementation
-			nodeToSimulateFrom = child
-		} else {
-			nodeToSimulateFrom = leaf
-		}
+	if optimizeFor == OPTIMIZE_FOR_BLACK {
+		for i := 0; i < iterations; i++ {
+			leaf := Traverse(currentRoot) // Select and Expand are coded in Traverse
+			var nodeToSimulateFrom *Node
+			if len(leaf.UntriedMoves) > 0 {
+				child := leaf.Expand() // This is a double expansion which is not in the normal implementation
+				nodeToSimulateFrom = child
+			} else {
+				nodeToSimulateFrom = leaf
+			}
 
-		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+			result := SimulateRollout(nodeToSimulateFrom.GameState)
+			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+		}
+	} else {
+		for i := 0; i < iterations; i++ {
+			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+			result := SimulateRollout(nodeToSimulateFrom.GameState)
+			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+		}
 	}
+
 	return BestNodeFromMCTS(currentRoot)
 }
 
@@ -200,7 +244,7 @@ func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
 		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+		OriginalBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }

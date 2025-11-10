@@ -177,24 +177,24 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return size, size
 }
 
-// Visual Main
-//
-//	func main() {
-//		ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
-//		size := boardSize*tileSize + (boardSize+1)*tileMargin
-//		ebiten.SetWindowSize(size, size)
-//		game := &Game{}
-//		if err := ebiten.RunGame(game); err != nil {
-//			log.Fatal(err)
-//		}
-//	}
-//
+//Visual Main
+
+// func main() {
+// 	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
+// 	size := boardSize*tileSize + (boardSize+1)*tileMargin
+// 	ebiten.SetWindowSize(size, size)
+// 	game := &Game{}
+// 	if err := ebiten.RunGame(game); err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
+
 // Versus main
 func main() {
 	start := time.Now()
 	OpponentWinCounter := 0
 	DrawsCounter := 0
-	Games := 100
+	Games := 10
 	for i := 0; i < Games; i++ {
 		// Each AI needs its own tree, so that they do not share knowledge and influence the other
 		// But they will update each other of their respective moves
