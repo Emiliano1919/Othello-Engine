@@ -136,13 +136,15 @@ func Backpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 		node.Visits++
 		switch optimizeFor {
 		case OPTIMIZE_FOR_BLACK:
-			switch result {
-			case WHITE_WIN:
-				node.Wins += 0
-			case BLACK_WIN:
-				node.Wins += 1 // Otherwise optmize for draw
-			case DRAW:
-				node.Wins += 1
+			if node.Parent != nil && node.Parent.GameState.BlackTurn {
+				switch result {
+				case WHITE_WIN:
+					node.Wins += 0
+				case BLACK_WIN:
+					node.Wins += 1 // Otherwise optmize for draw
+				case DRAW:
+					node.Wins += 1
+				}
 			}
 		case OPTIMIZE_FOR_WHITE:
 			if node.Parent != nil && !node.Parent.GameState.BlackTurn {
@@ -227,7 +229,8 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor Optimiz
 		}
 	} else {
 		for i := 0; i < iterations; i++ {
-			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+			// It does not benefit from being agressive on white, so we use Original Traverseß
+			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse.
 			result := SimulateRollout(nodeToSimulateFrom.GameState)
 			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
