@@ -81,3 +81,37 @@ Current Benchmark results:
         BenchmarkVersus-8                         	       1	10628987833 ns/op	465059776 B/op	31064478 allocs/op
         PASS
         ok  	othello	17.534s
+
+
+
+The importance of the change of types:
+
+Before:
+
+        goos: darwin
+        goarch: arm64
+        pkg: othello
+        cpu: Apple M1
+        BenchmarkMonteCarloTreeSearc-8            	      27	  39392144 ns/op	15171193 B/op	  238426 allocs/op
+        BenchmarkRollout-8                        	   12151	     96240 ns/op	   31677 B/op	     511 allocs/op
+        BenchmarkRolloutParallel-8                	   48339	     27689 ns/op	   31654 B/op	     511 allocs/op
+        BenchmarkMonteCarloTreeSearchParallel-8   	      79	  15042758 ns/op	15511110 B/op	  245948 allocs/op
+        BenchmarkInitialNodeCreationParallel-8    	 4720350	       246.2 ns/op	     280 B/op	       7 allocs/op
+        BenchmarkVersus-8                         	       1	13137906167 ns/op	4164307368 B/op	67774181 allocs/op
+        PASS
+        ok  	othello	22.145s
+
+After:
+
+        goos: darwin
+        goarch: arm64
+        pkg: othello
+        cpu: Apple M1
+        BenchmarkMonteCarloTreeSearc-8            	      32	  34703569 ns/op	 1709309 B/op	  110738 allocs/op
+        BenchmarkRollout-8                        	   16146	     74191 ns/op	    3315 B/op	     232 allocs/op
+        BenchmarkRolloutParallel-8                	   81868	     15022 ns/op	    3313 B/op	     232 allocs/op
+        BenchmarkMonteCarloTreeSearchParallel-8   	     145	   7361030 ns/op	 1740413 B/op	  113845 allocs/op
+        BenchmarkInitialNodeCreationParallel-8    	11684953	       101.2 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                         	       1	10628987833 ns/op	465059776 B/op	31064478 allocs/op
+        PASS
+        ok  	othello	17.534s
