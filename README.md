@@ -68,6 +68,18 @@ Also it seems that the AI benefits from a more slow approach when it is white (p
 This simulations take some time to run. Parallelization now seems like a necessary improvement to run the code at a faster speed. The code also needs some improvements, userIsBlack is confusing to use as a variable when running 2 algorithms.
 Note: Both algorithms were doing 5000 rollouts at each leaf Node.
 
+After running both my version and the Montecarlo tree search original version, now with improvements. The MCTS original version is better
+My algo as Black:
+Opponent Wins: 30
+Draws: 14
+Total Games ran: 100
+Total run time for all the games: 18m7.259308792s%  
+My algo as white:
+Opponent Wins: 39
+Draws: 7
+Total Games ran: 100
+Total run time for all the games: 18m12.5226s%  
+
 Current Benchmark results:
         goos: darwin
         goarch: arm64
