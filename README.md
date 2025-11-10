@@ -36,8 +36,10 @@ Current Ideas:
 - Get EDAX or Egaroucid running to test the game
 - Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
 - At endgame, run another Algorithm instead of MCTS maybe Minimax (The depth should be small enough to get the actual best move)
-- When calling NextNodeFromInput we create a new node, but maybe we can take a node that already exists, if it is kept in the tree. This way we are saving the information gained from the backpropagation that has reached that node. Additionally we can cut a subtree starting from that node, that way the backpropagation algorithm does not have to run until the initial root node (the one that started the game). This would improve the amount of information we have at any time and the speed of the program
+- ~~When calling NextNodeFromInput we create a new node, but maybe we can take a node that already exists, if it is kept in the tree. This way we are saving the information gained from the backpropagation that has reached that node. Additionally we can cut a subtree starting from that node, that way the backpropagation algorithm does not have to run until the initial root node (the one that started the game). This would improve the amount of information we have at any time and the speed of the program~~ (DONE)
 - Implement NegaScout Algorithm (?)
+- Improve speed and memory allocation
+    - ~~Change to smaller types where possible~~ (DONE for uint8)
 
 Current Results:
 
