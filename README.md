@@ -65,3 +65,18 @@ Also it seems that the AI benefits from a more slow approach when it is white (p
 
 This simulations take some time to run. Parallelization now seems like a necessary improvement to run the code at a faster speed. The code also needs some improvements, userIsBlack is confusing to use as a variable when running 2 algorithms.
 Note: Both algorithms were doing 5000 rollouts at each leaf Node.
+
+Current Benchmark results:
+
+        goos: darwin
+        goarch: arm64
+        pkg: othello
+        cpu: Apple M1
+        BenchmarkMonteCarloTreeSearc-8            	      28	  38764378 ns/op	15192498 B/op	  237820 allocs/op
+        BenchmarkRollout-8                        	   14596	     82280 ns/op	   31652 B/op	     511 allocs/op
+        BenchmarkRolloutParallel-8                	   51783	     22911 ns/op	   31647 B/op	     511 allocs/op
+        BenchmarkMonteCarloTreeSearchParallel-8   	     108	  10429961 ns/op	15499580 B/op	  245905 allocs/op
+        BenchmarkInitialNodeCreationParallel-8    	 8293948	       139.4 ns/op	     280 B/op	       7 allocs/op
+        PASS
+        ok  	othello	6.944s
+

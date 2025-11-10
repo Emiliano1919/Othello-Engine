@@ -189,6 +189,48 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // 	}
 // }
 
+func Versus() {
+	// Each AI needs its own tree, so that they do not share knowledge and influence the other
+	// But they will update each other of their respective moves
+	initialNodeP1 := InitialRootNode()
+	initialNodeP2 := InitialRootNode()
+	OpponentIsBlack := false // Is the opponent of baseline black?
+	var nodeP1 *Node
+	var nodeP2 *Node
+	if !OpponentIsBlack {
+		nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000)
+		nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
+		//nodeP2.GameState.Boards.PrintBoard()
+	} else {
+		nodeP2 = MonteCarloTreeSearch(initialNodeP2, 5000, OPTIMIZE_FOR_BLACK)
+		nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
+		// nodeP1.GameState.Boards.PrintBoard()
+	}
+	for !nodeP1.IsTerminal() { // This works because both nodes update each other
+		if !OpponentIsBlack {
+			if !nodeP1.GameState.BlackTurn {
+				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, OPTIMIZE_FOR_WHITE)
+				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+				//nodeP1.GameState.Boards.PrintBoard()
+			} else {
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000)
+				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+				//nodeP2.GameState.Boards.PrintBoard()
+			}
+		} else {
+			if nodeP1.GameState.BlackTurn {
+				nodeP2 = MonteCarloTreeSearch(nodeP2, 5000, OPTIMIZE_FOR_BLACK)
+				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+				//nodeP1.GameState.Boards.PrintBoard()
+			} else {
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000)
+				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+				//nodeP2.GameState.Boards.PrintBoard()
+			}
+		}
+	}
+}
+
 // Versus main
 func main() {
 	start := time.Now()
@@ -204,7 +246,7 @@ func main() {
 		var nodeP1 *Node
 		var nodeP2 *Node
 		if !OpponentIsBlack {
-			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000, OPTIMIZE_FOR_BLACK)
+			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 5000)
 			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
 			//nodeP2.GameState.Boards.PrintBoard()
 		} else {
@@ -219,7 +261,7 @@ func main() {
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OPTIMIZE_FOR_BLACK)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
@@ -229,7 +271,7 @@ func main() {
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000, OPTIMIZE_FOR_WHITE)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 5000)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}

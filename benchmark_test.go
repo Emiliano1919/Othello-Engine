@@ -43,3 +43,9 @@ func BenchmarkInitialNodeCreationParallel(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkVersus(b *testing.B) {
+	for b.Loop() {
+		Versus()
+	}
+}

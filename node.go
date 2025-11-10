@@ -25,6 +25,13 @@ func InitialRootNode() *Node {
 }
 
 func NextNodeFromInput(parent *Node, move [2]int) *Node {
+	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
+	for _, child := range parent.Children {
+		if child.Move == move {
+			child.Parent = nil
+			return child
+		}
+	}
 	newBoards := parent.GameState.Boards                             // Copy
 	newBoards.MakeMove(parent.GameState.BlackTurn, move[0], move[1]) // We make the move on the current player
 	newState := State{

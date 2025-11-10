@@ -163,34 +163,31 @@ func Backpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 }
 
 // Update visits and wins (A tie also counts as a win)
-func OriginalBackpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
+func OriginalBackpropagate(node *Node, result WinState) {
 	for node != nil {
 		node.Visits++
-		switch optimizeFor {
-		case OPTIMIZE_FOR_BLACK:
-			if node.Parent != nil && node.Parent.GameState.BlackTurn {
-				switch result {
-				case WHITE_WIN:
-					node.Wins += 0
-				case BLACK_WIN:
-					node.Wins += 1 // Otherwise optmize for draw
-				case DRAW:
-					node.Wins += 1
-				}
+		if node.Parent != nil && node.Parent.GameState.BlackTurn {
+			switch result {
+			case WHITE_WIN:
+				node.Wins += 0
+			case BLACK_WIN:
+				node.Wins += 1 // Otherwise optmize for draw
+			case DRAW:
+				node.Wins += 1
 			}
-		case OPTIMIZE_FOR_WHITE:
-			if node.Parent != nil && !node.Parent.GameState.BlackTurn {
-				switch result {
-				case WHITE_WIN:
-					node.Wins += 1 // If the machine is white optimize for white
-				case BLACK_WIN:
-					node.Wins += 0
-				case DRAW:
-					node.Wins += 1
-				}
-			}
-
 		}
+
+		if node.Parent != nil && !node.Parent.GameState.BlackTurn {
+			switch result {
+			case WHITE_WIN:
+				node.Wins += 1 // If the machine is white optimize for white
+			case BLACK_WIN:
+				node.Wins += 0
+			case DRAW:
+				node.Wins += 1
+			}
+		}
+
 		node = node.Parent
 	}
 }
@@ -240,14 +237,14 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor Optimiz
 }
 
 // Montecarlo Tree Search Implemented correctly
-func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
+func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
 		result := SimulateRollout(nodeToSimulateFrom.GameState)
-		OriginalBackpropagate(nodeToSimulateFrom, result, optimizeFor)
+		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
