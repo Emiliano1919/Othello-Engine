@@ -14,7 +14,7 @@ func BenchmarkMonteCarloTreeSearc(b *testing.B) {
 func BenchmarkRollout(b *testing.B) {
 	node := InitialRootNode()
 	for b.Loop() {
-		SimulateRollout(node.GameState)
+		SimulateRollout(node.GameState, 0)
 	}
 }
 
@@ -22,7 +22,7 @@ func BenchmarkRolloutParallel(b *testing.B) {
 	nodeP := InitialRootNode()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			SimulateRollout(nodeP.GameState)
+			SimulateRollout(nodeP.GameState, 0)
 		}
 	})
 }

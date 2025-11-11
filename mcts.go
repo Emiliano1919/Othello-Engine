@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"time"
 )
 
 // New OptimizeFor... to increase Clarity
@@ -103,7 +104,11 @@ func OriginalBestUCT(node *Node, c float64) *Node {
 
 // Simulate randomly from current node to the end of the game (choosing randomly at each step)
 // The states explored here are not saved, only the result
-func SimulateRollout(state State) WinState {
+func SimulateRollout(state State, seed int64) WinState {
+	if seed == 0 {
+		seed = time.Now().UnixNano() // use a random seed by default
+	}
+	random := rand.New(rand.NewSource(seed))
 	current := state
 
 	for !IsTerminalState(current) {
@@ -121,7 +126,7 @@ func SimulateRollout(state State) WinState {
 		}
 
 		moveArray := ArrayOfPositionalMoves(ArrayOfMoves(moves))
-		move := moveArray[rand.Intn(len(moveArray))] // Here is the rollout ppolicy  which is random
+		move := moveArray[random.Intn(len(moveArray))] // Here is the rollout ppolicy  which is random
 
 		current.Boards.MakeMove(current.BlackTurn, move[0], move[1])
 		current.BlackTurn = !current.BlackTurn
@@ -221,14 +226,14 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor Optimiz
 				nodeToSimulateFrom = leaf
 			}
 
-			result := SimulateRollout(nodeToSimulateFrom.GameState)
+			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
 			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	} else {
 		for i := 0; i < iterations; i++ {
 			// It does not benefit from being agressive on white, so we use Original Traverseß
 			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse.
-			result := SimulateRollout(nodeToSimulateFrom.GameState)
+			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
 			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	}
@@ -243,8 +248,32 @@ func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 	}
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
-		result := SimulateRollout(nodeToSimulateFrom.GameState)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
+
+// Send back the number of games and wins per move from the root
+func OriginalMCTShWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int64) map[[2]uint8][2]int {
+	if currentRoot.IsTerminal() {
+		return nil
+	}
+	for i := 0; i < iterations; i++ {
+		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+		result := SimulateRollout(nodeToSimulateFrom.GameState, seed)
+		OriginalBackpropagate(nodeToSimulateFrom, result)
+	}
+	movesWithRatio := make(map[[2]uint8][2]int, len(currentRoot.Children))
+	for _, child := range currentRoot.Children {
+		movesWithRatio[child.Move] = [2]int{(child.Wins), (child.Visits)}
+	}
+	return movesWithRatio // We return a map with the information needed
+}
+
+//// This is a root level parallelization
+// func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
+// This function needs to generate 1 master tree and run it, and then run in parallel n trees with OriginalMCTShWinsPlayoutsByMove
+// Then update the master's root children to have the result of the parallel simulations.
+// Then after all that is done, choose the best move like normal
+// }
