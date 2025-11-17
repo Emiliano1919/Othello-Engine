@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -254,8 +255,21 @@ func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
 	return BestNodeFromMCTS(currentRoot)
 }
 
+// Montecarlo Tree Search Implemented correctly
+func RootAfterOriginalMCTS(currentRoot *Node, iterations int) *Node {
+	if currentRoot.IsTerminal() {
+		return currentRoot
+	}
+	for i := 0; i < iterations; i++ {
+		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+		result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
+		OriginalBackpropagate(nodeToSimulateFrom, result)
+	}
+	return currentRoot
+}
+
 // Send back the number of games and wins per move from the root
-func OriginalMCTShWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int64) map[[2]uint8][2]int {
+func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int64) map[[2]uint8][2]int {
 	if currentRoot.IsTerminal() {
 		return nil
 	}
@@ -271,9 +285,40 @@ func OriginalMCTShWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int
 	return movesWithRatio // We return a map with the information needed
 }
 
-//// This is a root level parallelization
-// func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
-// This function needs to generate 1 master tree and run it, and then run in parallel n trees with OriginalMCTShWinsPlayoutsByMove
-// Then update the master's root children to have the result of the parallel simulations.
-// Then after all that is done, choose the best move like normal
-// }
+// // This is a root level parallelization
+func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
+	// This function needs to generate 1 master tree and run it, and then run in parallel n trees with OriginalMCTShWinsPlayoutsByMove
+	// Then update the master's root children to have the result of the parallel simulations.
+	// Then after all that is done, choose the best move like normal
+	maxProcesses := 5
+	currentRoot = RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine) // This can also be run on parallel since we only need to save one
+	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
+	var wg sync.WaitGroup
+	// We run the parallelization after we have at least one tree generated
+	for i := 0; i < maxProcesses; i++ {
+		wg.Add(1)
+		go func(seed int64) {
+			defer wg.Done()
+			broadcastedNode := NewNode(currentRoot.GameState, nil, [2]uint8{})
+			// We just need the state of the root (the tree can be generated of it), we don't care about the parent of this one
+			// We need to do this because if we share the original root there will be race conditions
+			parallelResult := OriginalMCTSWinsPlayoutsByMove(broadcastedNode, iterationsPerRoutine, seed)
+			firstLayerRes <- parallelResult
+		}(int64(i))
+	}
+	// Wait for all of them to complete
+	go func() {
+		wg.Wait()
+		close(firstLayerRes)
+	}()
+
+	for dict := range firstLayerRes {
+		for _, child := range currentRoot.Children {
+			if res, exists := dict[child.Move]; exists {
+				child.Wins += res[0]
+				child.Visits += res[1]
+			}
+		}
+	}
+	return BestNodeFromMCTS(currentRoot)
+}

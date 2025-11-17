@@ -102,7 +102,7 @@ func (g *Game) Update() error {
 		} else {
 			if !g.userIsBlack {
 				if g.node.GameState.BlackTurn {
-					g.node = OriginalMonteCarloTreeSearch(g.node, 500)
+					g.node = SingleRunParallelizationMCTS(g.node, 500)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if !g.node.GameState.BlackTurn {
@@ -111,7 +111,7 @@ func (g *Game) Update() error {
 				}
 			} else {
 				if !g.node.GameState.BlackTurn {
-					g.node = OriginalMonteCarloTreeSearch(g.node, 500)
+					g.node = SingleRunParallelizationMCTS(g.node, 500)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if g.node.GameState.BlackTurn {
