@@ -20,7 +20,7 @@ func BenchmarkOriginalMonteCarloTreeSearch(b *testing.B) {
 func BenchmarkSingleRunParallelizationMCTS(b *testing.B) {
 	node := InitialRootNode()
 	for b.Loop() {
-		SingleRunParallelizationMCTS(node, 50)
+		SingleRunParallelizationMCTS(node, 200)
 	}
 }
 
