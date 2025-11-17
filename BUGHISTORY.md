@@ -51,3 +51,5 @@ Opponent Wins: 39
 Draws: 7
 Total Games ran: 100
 Total run time for all the games: 18m12.5226s%  
+
+**The number of simulations per move of the AI was 5000 for all of the previous benchmark results**

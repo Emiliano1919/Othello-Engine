@@ -36,6 +36,7 @@ Uses Montecarlo Tree search to select the best move.
 ## Current benchmarking results:
 
 The 3 MCTS algorithms are running 500 simulations in total, we can see that single run parallelization performs great.
+Versus was running 2 models, MCTS original vs single run parallelization, both with 500 simulations in total.
 
 Current Benchmark results:
 
@@ -43,16 +44,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      27	  40676880 ns/op	 4390357 B/op	  111150 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      27	  41096523 ns/op	 4343107 B/op	  110908 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	      98	  11564320 ns/op	 4387042 B/op	  115237 allocs/op
-    BenchmarkRollout-8                                  	   13414	     88234 ns/op	    8692 B/op	     233 allocs/op
-    BenchmarkRolloutParallel-8                          	   64932	     18426 ns/op	    8690 B/op	     233 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     123	   9234998 ns/op	 4427632 B/op	  114326 allocs/op
-    BenchmarkInitialNodeCreationParallel-8              	11322494	       111.7 ns/op	     128 B/op	       3 allocs/op
-    BenchmarkVersus-8                                   	       1	14392432541 ns/op	2056027264 B/op	30541030 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      27	  43043940 ns/op	 4401202 B/op	  111478 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      28	  40368275 ns/op	 4346360 B/op	  111039 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     100	  11413553 ns/op	 4386934 B/op	  115242 allocs/op
+    BenchmarkRollout-8                                  	   14127	     86011 ns/op	    8688 B/op	     233 allocs/op
+    BenchmarkRolloutParallel-8                          	   61320	     18258 ns/op	    8688 B/op	     233 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     130	   8809887 ns/op	 4427154 B/op	  114317 allocs/op
+    BenchmarkInitialNodeCreationParallel-8              	11673699	        99.94 ns/op	     128 B/op	       3 allocs/op
+    BenchmarkVersus-8                                   	       2	 936545000 ns/op	209554416 B/op	 3285514 allocs/op
     PASS
-    ok  	othello	23.478s
+    ok  	othello	11.180s
 
 
 
