@@ -322,3 +322,7 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
+
+// func leafParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
+// Run multiple go routines once you get to a leaf
+// }
