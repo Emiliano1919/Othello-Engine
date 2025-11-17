@@ -38,6 +38,7 @@ Uses Montecarlo Tree search to select the best move.
 The 3 MCTS algorithms are running 500 simulations in total, we can see that single run parallelization performs great.
 
 Current Benchmark results:
+
     goos: darwin
     goarch: arm64
     pkg: othello
