@@ -3,7 +3,6 @@ package main
 import (
 	"math"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -286,23 +285,18 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int6
 }
 
 // // This is a root level parallelization
+// It works by generating one master tree and at the same time running in parallel simulations that will be used
+// to update the first level of the master tree (the children ) with statistics from the parallel simulations
+// This method decreases the variance according to research
 func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
-	// This function needs to generate 1 master tree and run it, and then run in parallel n trees with OriginalMCTShWinsPlayoutsByMove
-	// Then update the master's root children to have the result of the parallel simulations.
-	// Then after all that is done, choose the best move like normal
 	maxProcesses := 5
 	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
-	tree := make(chan *Node, 1)
-	var wg sync.WaitGroup
-	wg.Add(1)
+	masterTree := make(chan *Node, 1)
 	go func() {
-		defer wg.Done()
-		tree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine)
+		masterTree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine)
 	}()
 	for i := 0; i < maxProcesses; i++ {
-		wg.Add(1)
 		go func(seed int64) {
-			defer wg.Done()
 			broadcastedNode := NewNode(currentRoot.GameState, nil, [2]uint8{})
 			// We just need the state of the root (the tree can be generated of it), we don't care about the parent of this one
 			// We need to do this because if we share the original root there will be race conditions
@@ -311,13 +305,12 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *
 		}(int64(i))
 	}
 	// Wait for all of them to complete
-	go func() {
-		wg.Wait()
-		currentRoot = <-tree
-		close(firstLayerRes)
-		close(tree)
-	}()
-	for dict := range firstLayerRes {
+	currentRoot = <-masterTree // update the tree with the result of 1 simulation (this will be the base)
+	close(masterTree)
+	// Collect exactly maxProcesses results from worker goroutines
+	for i := 0; i < maxProcesses; i++ {
+		dict := <-firstLayerRes
+		// Accumulate worker results into master's children
 		for _, child := range currentRoot.Children {
 			if res, exists := dict[child.Move]; exists {
 				child.Wins += res[0]
