@@ -44,9 +44,9 @@ func (node *Node) Expand() *Node {
 }
 
 // Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
-func Traverse(node *Node) *Node {
+func AgressiveTraverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
-		node = BestUCT(node, float64(2))
+		node = AgressiveBestUCT(node, float64(2))
 	}
 	if node.IsTerminal() {
 		return node
@@ -66,7 +66,7 @@ func OriginalTraverse(node *Node) *Node {
 }
 
 // Choose best child to explore using UCT
-func BestUCT(node *Node, c float64) *Node {
+func AgressiveBestUCT(node *Node, c float64) *Node {
 	var best *Node
 	bestUCT := float64(-1 << 63)
 	for _, child := range node.Children {
@@ -136,7 +136,8 @@ func SimulateRollout(state State, seed int64) WinState {
 }
 
 // Update visits and wins (A tie also counts as a win)
-func Backpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
+// It is innacurate because it only updates the levels of the color it wants
+func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 	for node != nil {
 		node.Visits++
 		switch optimizeFor {
@@ -210,14 +211,15 @@ func BestNodeFromMCTS(node *Node) *Node {
 	return bestNode
 }
 
-// Montecarlo Tree search algorithm
-func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
+// Montecarlo Tree search algorithm with agressive UCT (travers), double expansion and incorrect backpropagation
+// This model is more fun to play against than normal MCTS
+func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
 	if optimizeFor == OPTIMIZE_FOR_BLACK {
 		for i := 0; i < iterations; i++ {
-			leaf := Traverse(currentRoot) // Select and Expand are coded in Traverse
+			leaf := AgressiveTraverse(currentRoot) // Select and Expand are coded in Traverse
 			var nodeToSimulateFrom *Node
 			if len(leaf.UntriedMoves) > 0 {
 				child := leaf.Expand() // This is a double expansion which is not in the normal implementation
@@ -227,14 +229,14 @@ func MonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor Optimiz
 			}
 
 			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
-			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+			InnacurateBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	} else {
 		for i := 0; i < iterations; i++ {
 			// It does not benefit from being agressive on white, so we use Original Traverseß
 			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse.
 			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
-			Backpropagate(nodeToSimulateFrom, result, optimizeFor)
+			InnacurateBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	}
 
@@ -289,7 +291,7 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int6
 // to update the first level of the master tree (the children ) with statistics from the parallel simulations
 // This method decreases the variance according to research
 func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
-	maxProcesses := 5
+	maxProcesses := 9
 	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
 	masterTree := make(chan *Node, 1)
 	go func() {

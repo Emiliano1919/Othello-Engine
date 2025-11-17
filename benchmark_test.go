@@ -4,10 +4,23 @@ import (
 	"testing"
 )
 
-func BenchmarkMonteCarloTreeSearc(b *testing.B) {
+func BenchmarkInnacurateMonteCarloTreeSearch(b *testing.B) {
 	node := InitialRootNode()
 	for b.Loop() {
-		MonteCarloTreeSearch(node, 500, OPTIMIZE_FOR_BLACK)
+		InnacurateMonteCarloTreeSearch(node, 500, OPTIMIZE_FOR_BLACK)
+	}
+}
+
+func BenchmarkOriginalMonteCarloTreeSearch(b *testing.B) {
+	node := InitialRootNode()
+	for b.Loop() {
+		OriginalMonteCarloTreeSearch(node, 500)
+	}
+}
+func BenchmarkSingleRunParallelizationMCTS(b *testing.B) {
+	node := InitialRootNode()
+	for b.Loop() {
+		SingleRunParallelizationMCTS(node, 50)
 	}
 }
 
@@ -27,11 +40,11 @@ func BenchmarkRolloutParallel(b *testing.B) {
 	})
 }
 
-func BenchmarkMonteCarloTreeSearchParallel(b *testing.B) {
+func BenchmarkInnacurateMonteCarloTreeSearchParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			nodePM := InitialRootNode()
-			MonteCarloTreeSearch(nodePM, 500, OPTIMIZE_FOR_BLACK)
+			InnacurateMonteCarloTreeSearch(nodePM, 500, OPTIMIZE_FOR_BLACK)
 		}
 	})
 }
