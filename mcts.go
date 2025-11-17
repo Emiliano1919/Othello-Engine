@@ -291,10 +291,14 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *
 	// Then update the master's root children to have the result of the parallel simulations.
 	// Then after all that is done, choose the best move like normal
 	maxProcesses := 5
-	currentRoot = RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine) // This can also be run on parallel since we only need to save one
 	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
+	tree := make(chan *Node, 1)
 	var wg sync.WaitGroup
-	// We run the parallelization after we have at least one tree generated
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		tree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine)
+	}()
 	for i := 0; i < maxProcesses; i++ {
 		wg.Add(1)
 		go func(seed int64) {
@@ -309,9 +313,10 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *
 	// Wait for all of them to complete
 	go func() {
 		wg.Wait()
+		currentRoot = <-tree
 		close(firstLayerRes)
+		close(tree)
 	}()
-
 	for dict := range firstLayerRes {
 		for _, child := range currentRoot.Children {
 			if res, exists := dict[child.Move]; exists {
