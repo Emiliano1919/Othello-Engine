@@ -132,8 +132,8 @@ Now with the parallelization as black:
 ### Inneficient use of random number generator
 
 
-    The results of the profiler indicate that the rng generator is a performance bottle neck in both cpu and memory reworking the rng in all the mcts improved performance all around
-    Extract from profiler for OriginalMonteCarloTreeSearch:
+The results of the profiler indicate that the rng generator is a performance bottle neck in both cpu and memory reworking the rng in all the mcts improved performance all around.
+Extract from profiler for OriginalMonteCarloTreeSearch:
 
     go tool pprof mem.out
         flat  flat%   sum%        cum   cum%
@@ -150,7 +150,7 @@ Now with the parallelization as black:
         80ms  7.92% 58.42%      410ms 40.59%  othello.generateMoves
         50ms  4.95% 63.37%       60ms  5.94%  math/rand.(*rngSource).Seed
     
-    And the benchmark results:
+And the benchmark results:
 
         goos: darwin
         goarch: arm64
@@ -167,7 +167,7 @@ Now with the parallelization as black:
         PASS
         ok  	othello	11.180s
     
-    The bytes per operation (third column of results) went down dramatically and there is some improvement in nano second per operation (second column of results). After fixing the performance issue by sharing one random number generator for sequential execution, and one rng per goroutine inside the single run parallelization.:
+The bytes per operation (third column of results) went down dramatically and there is some improvement in nano second per operation (second column of results). After fixing the performance issue by sharing one random number generator for sequential execution, and one rng per goroutine inside the single run parallelization.:
 
         goos: darwin
         goarch: arm64
@@ -184,7 +184,8 @@ Now with the parallelization as black:
         PASS
         ok  	othello	11.083s
 
-    Extract from profiler after improvemnt for OriginalMonteCarloTreeSearch:
+Extract from profiler after improvemnt for OriginalMonteCarloTreeSearch:
+
     go tool pprof mem.out
     Showing nodes accounting for 53.28MB, 96.37% of 55.28MB total
     Showing top 10 nodes out of 66
