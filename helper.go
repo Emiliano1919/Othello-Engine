@@ -85,8 +85,8 @@ func (s *State) PrintBoardWithMoves() {
 	fmt.Println()
 }
 
-func RequestMove(userIsBlack bool) [2]int {
-	var arr [2]int
+func RequestMove(userIsBlack bool) [2]uint8 {
+	var arr [2]uint8
 
 	color := "white"
 	if userIsBlack {

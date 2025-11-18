@@ -322,12 +322,14 @@ func main() {
 
 // Debugging Main
 // func main() {
+// 	start := time.Now()
+// 	rng := rand.New(rand.NewSource(start.UnixNano()))
 // 	initialNode := InitialRootNode()
 // 	initialNode.GameState.Boards.PrintBoard()
 // 	userIsBlack := RequestUserIsBlack()
 // 	var node *Node
 // 	if !userIsBlack {
-// 		bestOpening := MonteCarloTreeSearch(initialNode, 5000,userIsBlack)
+// 		bestOpening := SingleRunParallelizationMCTS(initialNode, 5000, rng)
 // 		bestOpening.GameState.Boards.PrintBoard()
 // 		node = bestOpening
 // 	} else {
@@ -342,7 +344,7 @@ func main() {
 // 				whiteMove := RequestMove(userIsBlack)
 // 				node = NextNodeFromInput(node, whiteMove)
 // 			} else {
-// 				mctsNode := MonteCarloTreeSearch(node, 5000,userIsBlack)
+// 				mctsNode := SingleRunParallelizationMCTS(node, 5000, rng)
 // 				mctsNode.GameState.Boards.PrintBoard()
 // 				node = mctsNode
 // 			}
@@ -352,7 +354,7 @@ func main() {
 // 				blackMove := RequestMove(userIsBlack)
 // 				node = NextNodeFromInput(node, blackMove)
 // 			} else {
-// 				mctsNode := MonteCarloTreeSearch(node, 5000,userIsBlack)
+// 				mctsNode := SingleRunParallelizationMCTS(node, 5000, rng)
 // 				mctsNode.GameState.Boards.PrintBoard()
 // 				node = mctsNode
 // 			}
