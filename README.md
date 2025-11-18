@@ -32,6 +32,9 @@ Uses Montecarlo Tree search to select the best move.
 - Implement NegaScout Algorithm (?)
 - Improve speed and memory allocation
     - ~~Change to smaller types where possible~~ (DONE for uint8)
+    - ~~Start using profiler and benchmarking to test~~ (DONE) 
+    - ~~Optimize the random number generator~~ (DONE)
+    - Optimize the memory expensive ArrayOfPositionalMoves, and ArrayOfMoves
 
 ## Current benchmarking results:
 
