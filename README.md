@@ -44,16 +44,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      27	  43043940 ns/op	 4401202 B/op	  111478 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      28	  40368275 ns/op	 4346360 B/op	  111039 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     100	  11413553 ns/op	 4386934 B/op	  115242 allocs/op
-    BenchmarkRollout-8                                  	   14127	     86011 ns/op	    8688 B/op	     233 allocs/op
-    BenchmarkRolloutParallel-8                          	   61320	     18258 ns/op	    8688 B/op	     233 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     130	   8809887 ns/op	 4427154 B/op	  114317 allocs/op
-    BenchmarkInitialNodeCreationParallel-8              	11673699	        99.94 ns/op	     128 B/op	       3 allocs/op
-    BenchmarkVersus-8                                   	       2	 936545000 ns/op	209554416 B/op	 3285514 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      30	  34751862 ns/op	 1706158 B/op	  110736 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      33	  34726694 ns/op	 1655930 B/op	  110337 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     136	   8713589 ns/op	 1757373 B/op	  115098 allocs/op
+    BenchmarkRollout-8                                  	   16195	     73988 ns/op	    3311 B/op	     232 allocs/op
+    BenchmarkRolloutParallel-8                          	   77290	     15196 ns/op	    3314 B/op	     232 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     158	   7617586 ns/op	 1744979 B/op	  113841 allocs/op
+    BenchmarkInitialNodeCreationParallel-8              	10059080	       101.3 ns/op	     128 B/op	       3 allocs/op
+    BenchmarkVersus-8                                   	       2	 746328500 ns/op	49786616 B/op	 3259000 allocs/op
     PASS
-    ok  	othello	11.180s
+    ok  	othello	11.083s
 
 
 
@@ -125,3 +125,87 @@ Now with the parallelization as black:
     Draws: 16
     Total Games ran: 100
     Total run time for all the games: 2m24.837461458s%   
+
+### Inneficient use of random number generator
+
+
+    The results of the profiler indicate that the rng generator is a performance bottle neck in both cpu and memory reworking the rng in all the mcts improved performance all around
+    Extract from profiler for OriginalMonteCarloTreeSearch:
+
+    go tool pprof mem.out
+        flat  flat%   sum%        cum   cum%
+    67.85MB 57.48% 57.48%    67.85MB 57.48%  math/rand.newSource
+    go tool pprof cpu.out
+    File: othello.test
+    Type: cpu
+    Time: 2025-11-17 11:36:33 EST
+    Duration: 1.43s, Total samples = 1.01s (70.58%)
+    Showing nodes accounting for 860ms, 85.15% of 1010ms total
+    Showing top 10 nodes out of 85
+        flat  flat%   sum%        cum   cum%
+        510ms 50.50% 50.50%      510ms 50.50%  othello.shift (inline)
+        80ms  7.92% 58.42%      410ms 40.59%  othello.generateMoves
+        50ms  4.95% 63.37%       60ms  5.94%  math/rand.(*rngSource).Seed
+    
+    And the benchmark results:
+
+        goos: darwin
+        goarch: arm64
+        pkg: othello
+        cpu: Apple M1
+        BenchmarkInnacurateMonteCarloTreeSearch-8           	      27	  43043940 ns/op	 4401202 B/op	  111478 allocs/op
+        BenchmarkOriginalMonteCarloTreeSearch-8             	      28	  40368275 ns/op	 4346360 B/op	  111039 allocs/op
+        BenchmarkSingleRunParallelizationMCTS-8             	     100	  11413553 ns/op	 4386934 B/op	  115242 allocs/op
+        BenchmarkRollout-8                                  	   14127	     86011 ns/op	    8688 B/op	     233 allocs/op
+        BenchmarkRolloutParallel-8                          	   61320	     18258 ns/op	    8688 B/op	     233 allocs/op
+        BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     130	   8809887 ns/op	 4427154 B/op	  114317 allocs/op
+        BenchmarkInitialNodeCreationParallel-8              	11673699	        99.94 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                                   	       2	 936545000 ns/op	209554416 B/op	 3285514 allocs/op
+        PASS
+        ok  	othello	11.180s
+    
+    The bytes per operation (third column of results) went down dramatically and there is some improvement in nano second per operation (second column of results). After fixing the performance issue by sharing one random number generator for sequential execution, and one rng per goroutine inside the single run parallelization.:
+
+        goos: darwin
+        goarch: arm64
+        pkg: othello
+        cpu: Apple M1
+        BenchmarkInnacurateMonteCarloTreeSearch-8           	      30	  34751862 ns/op	 1706158 B/op	  110736 allocs/op
+        BenchmarkOriginalMonteCarloTreeSearch-8             	      33	  34726694 ns/op	 1655930 B/op	  110337 allocs/op
+        BenchmarkSingleRunParallelizationMCTS-8             	     136	   8713589 ns/op	 1757373 B/op	  115098 allocs/op
+        BenchmarkRollout-8                                  	   16195	     73988 ns/op	    3311 B/op	     232 allocs/op
+        BenchmarkRolloutParallel-8                          	   77290	     15196 ns/op	    3314 B/op	     232 allocs/op
+        BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     158	   7617586 ns/op	 1744979 B/op	  113841 allocs/op
+        BenchmarkInitialNodeCreationParallel-8              	10059080	       101.3 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                                   	       2	 746328500 ns/op	49786616 B/op	 3259000 allocs/op
+        PASS
+        ok  	othello	11.083s
+
+    Extract from profiler after improvemnt for OriginalMonteCarloTreeSearch:
+    go tool pprof mem.out
+    Showing nodes accounting for 53.28MB, 96.37% of 55.28MB total
+    Showing top 10 nodes out of 66
+        flat  flat%   sum%        cum   cum%
+    28.50MB 51.56% 51.56%    28.50MB 51.56%  othello.ArrayOfPositionalMoves (inline)
+        17MB 30.75% 82.31%       17MB 30.75%  othello.ArrayOfMoves (inline)
+        1.50MB  2.72% 85.03%     1.50MB  2.72%  runtime.allocm
+    go tool pprof cpu.out                                                                        
+    File: othello.test
+    Type: cpu
+    Time: 2025-11-17 19:36:42 EST
+    Duration: 1.31s, Total samples = 1.07s (81.54%)
+    Entering interactive mode (type "help" for commands, "o" for options)
+    (pprof) top
+    Showing nodes accounting for 1.01s, 94.39% of 1.07s total
+    Showing top 10 nodes out of 74
+        flat  flat%   sum%        cum   cum%
+        0.52s 48.60% 48.60%      0.52s 48.60%  othello.shift (inline)
+        0.25s 23.36% 71.96%      0.25s 23.36%  runtime.madvise
+        0.08s  7.48% 79.44%      0.09s  8.41%  othello.ArrayOfMoves
+        0.04s  3.74% 83.18%      0.41s 38.32%  othello.generateMoves
+        0.04s  3.74% 86.92%      0.04s  3.74%  runtime.memclrNoHeapPointers
+        0.03s  2.80% 89.72%      0.05s  4.67%  othello.(*Node).Expand
+        0.02s  1.87% 91.59%      0.02s  1.87%  runtime.scanobject
+        0.01s  0.93% 92.52%      0.01s  0.93%  internal/runtime/atomic.(*Uint32).Add
+        0.01s  0.93% 93.46%      0.01s  0.93%  math/rand.(*rngSource).Uint64
+        0.01s  0.93% 94.39%      0.06s  5.61%  othello.ArrayOfPositionalMoves

@@ -104,11 +104,7 @@ func OriginalBestUCT(node *Node, c float64) *Node {
 
 // Simulate randomly from current node to the end of the game (choosing randomly at each step)
 // The states explored here are not saved, only the result
-func SimulateRollout(state State, seed int64) WinState {
-	if seed == 0 {
-		seed = time.Now().UnixNano() // use a random seed by default
-	}
-	random := rand.New(rand.NewSource(seed))
+func SimulateRollout(state State, random *rand.Rand) WinState {
 	current := state
 
 	for !IsTerminalState(current) {
@@ -213,7 +209,7 @@ func BestNodeFromMCTS(node *Node) *Node {
 
 // Montecarlo Tree search algorithm with agressive UCT (travers), double expansion and incorrect backpropagation
 // This model is more fun to play against than normal MCTS
-func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor) *Node {
+func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
@@ -228,14 +224,14 @@ func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeF
 				nodeToSimulateFrom = leaf
 			}
 
-			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
+			result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 			InnacurateBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	} else {
 		for i := 0; i < iterations; i++ {
 			// It does not benefit from being agressive on white, so we use Original Traverseß
 			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse.
-			result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
+			result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 			InnacurateBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
 	}
@@ -244,39 +240,39 @@ func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeF
 }
 
 // Montecarlo Tree Search Implemented correctly
-func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int) *Node {
+func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
-		result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
 	return BestNodeFromMCTS(currentRoot)
 }
 
 // Montecarlo Tree Search Implemented correctly
-func RootAfterOriginalMCTS(currentRoot *Node, iterations int) *Node {
+func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
-		result := SimulateRollout(nodeToSimulateFrom.GameState, 0)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
 	return currentRoot
 }
 
 // Send back the number of games and wins per move from the root
-func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int64) map[[2]uint8][2]int {
+func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[[2]uint8][2]int {
 	if currentRoot.IsTerminal() {
 		return nil
 	}
 	for i := 0; i < iterations; i++ {
 		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
-		result := SimulateRollout(nodeToSimulateFrom.GameState, seed)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
 	movesWithRatio := make(map[[2]uint8][2]int, len(currentRoot.Children))
@@ -290,21 +286,22 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, seed int6
 // It works by generating one master tree and at the same time running in parallel simulations that will be used
 // to update the first level of the master tree (the children ) with statistics from the parallel simulations
 // This method decreases the variance according to research
-func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int) *Node {
+func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, baseRNG *rand.Rand) *Node {
 	maxProcesses := 9
 	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
 	masterTree := make(chan *Node, 1)
 	go func() {
-		masterTree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine)
+		masterTree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine, baseRNG)
 	}()
 	for i := 0; i < maxProcesses; i++ {
-		go func(seed int64) {
+		go func(id int) {
+			parallelRNGi := rand.New(rand.NewSource(time.Now().UnixNano() + int64(id)))
 			broadcastedNode := NewNode(currentRoot.GameState, nil, [2]uint8{})
 			// We just need the state of the root (the tree can be generated of it), we don't care about the parent of this one
 			// We need to do this because if we share the original root there will be race conditions
-			parallelResult := OriginalMCTSWinsPlayoutsByMove(broadcastedNode, iterationsPerRoutine, seed)
+			parallelResult := OriginalMCTSWinsPlayoutsByMove(broadcastedNode, iterationsPerRoutine, parallelRNGi)
 			firstLayerRes <- parallelResult
-		}(int64(i))
+		}(i)
 	}
 	// Wait for all of them to complete
 	currentRoot = <-masterTree // update the tree with the result of 1 simulation (this will be the base)

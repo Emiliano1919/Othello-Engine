@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,6 +31,7 @@ type Game struct {
 	legalMoves     uint64 // We put it here because we calculate it at the end of the machine turn
 	state          GamePhase
 	userIsBlack    bool
+	rng            *rand.Rand
 }
 
 func (g *Game) UpdateStartScreen() {
@@ -102,7 +104,7 @@ func (g *Game) Update() error {
 		} else {
 			if !g.userIsBlack {
 				if g.node.GameState.BlackTurn {
-					g.node = SingleRunParallelizationMCTS(g.node, 500)
+					g.node = SingleRunParallelizationMCTS(g.node, 500, g.rng)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if !g.node.GameState.BlackTurn {
@@ -111,7 +113,7 @@ func (g *Game) Update() error {
 				}
 			} else {
 				if !g.node.GameState.BlackTurn {
-					g.node = SingleRunParallelizationMCTS(g.node, 500)
+					g.node = SingleRunParallelizationMCTS(g.node, 500, g.rng)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if g.node.GameState.BlackTurn {
@@ -183,13 +185,22 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 // 	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
 // 	size := boardSize*tileSize + (boardSize+1)*tileMargin
 // 	ebiten.SetWindowSize(size, size)
-// 	game := &Game{}
+// 	// Create a new RNG
+// 	start := time.Now()
+// 	rng := rand.New(rand.NewSource(start.UnixNano()))
+
+// 	// Pass rng to the Game instance
+// 	game := &Game{
+// 		rng: rng,
+// 	}
 // 	if err := ebiten.RunGame(game); err != nil {
 // 		log.Fatal(err)
 // 	}
 // }
 
 func Versus() {
+	start := time.Now()
+	rng := rand.New(rand.NewSource(start.UnixNano()))
 	// Each AI needs its own tree, so that they do not share knowledge and influence the other
 	// But they will update each other of their respective moves
 	initialNodeP1 := InitialRootNode()
@@ -198,12 +209,12 @@ func Versus() {
 	var nodeP1 *Node
 	var nodeP2 *Node
 	if !OpponentIsBlack {
-		nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500)
+		nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500, rng)
 		nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
 		//nodeP2.GameState.Boards.PrintBoard()
 	} else {
 		//nodeP2 = InnacurateMonteCarloTreeSearch(initialNodeP2, 500, OPTIMIZE_FOR_BLACK)
-		nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 50)
+		nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 50, rng)
 		nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
 		// nodeP1.GameState.Boards.PrintBoard()
 	}
@@ -211,22 +222,22 @@ func Versus() {
 		if !OpponentIsBlack {
 			if !nodeP1.GameState.BlackTurn {
 				//nodeP2 = InnacurateMonteCarloTreeSearch(nodeP2, 500, OPTIMIZE_FOR_WHITE)
-				nodeP2 = SingleRunParallelizationMCTS(nodeP2, 50)
+				nodeP2 = SingleRunParallelizationMCTS(nodeP2, 50, rng)
 				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 				//nodeP1.GameState.Boards.PrintBoard()
 			} else {
-				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500)
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
 				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 				//nodeP2.GameState.Boards.PrintBoard()
 			}
 		} else {
 			if nodeP1.GameState.BlackTurn {
 				//nodeP2 = InnacurateMonteCarloTreeSearch(nodeP2, 500, OPTIMIZE_FOR_BLACK)
-				nodeP2 = SingleRunParallelizationMCTS(nodeP2, 50)
+				nodeP2 = SingleRunParallelizationMCTS(nodeP2, 50, rng)
 				nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 				//nodeP1.GameState.Boards.PrintBoard()
 			} else {
-				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500)
+				nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
 				nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 				//nodeP2.GameState.Boards.PrintBoard()
 			}
@@ -237,6 +248,9 @@ func Versus() {
 // Versus main
 func main() {
 	start := time.Now()
+	rng := rand.New(rand.NewSource(start.UnixNano()))
+	// Just one is needed because access is sequential between the 2 AIs  (they dont move at the same time)
+	// And the parallelization already has the necessary protections for sharing rng (each goroutine has its own rng)
 	OpponentWinCounter := 0
 	DrawsCounter := 0
 	Games := 100
@@ -245,36 +259,36 @@ func main() {
 		// But they will update each other of their respective moves
 		initialNodeP1 := InitialRootNode()
 		initialNodeP2 := InitialRootNode()
-		OpponentIsBlack := true // Is the opponent of baseline black?
+		OpponentIsBlack := false // Is the opponent of baseline black?
 		var nodeP1 *Node
 		var nodeP2 *Node
 		if !OpponentIsBlack {
-			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500)
+			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500, rng)
 			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
 			//nodeP2.GameState.Boards.PrintBoard()
 		} else {
-			nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 200)
+			nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 200, rng)
 			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
 			// nodeP1.GameState.Boards.PrintBoard()
 		}
 		for !nodeP1.IsTerminal() { // This works because both nodes update each other
 			if !OpponentIsBlack {
 				if !nodeP1.GameState.BlackTurn {
-					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200)
+					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
 			} else {
 				if nodeP1.GameState.BlackTurn {
-					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200)
+					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500)
+					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
