@@ -64,6 +64,7 @@ func NewNode(state State, parent *Node, move [2]uint8) *Node {
 	}
 }
 
+// Return true if node is fully expanded otherwise false
 func (node *Node) IsFullyExpanded() bool {
 	return len(node.UntriedMoves) == 0
 }

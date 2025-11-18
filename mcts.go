@@ -54,6 +54,23 @@ func AgressiveTraverse(node *Node) *Node {
 	return node.Expand()
 }
 
+// Traverse until a leaf using OriginalBestUCT
+func Select(node *Node, c float64) *Node {
+	for node.IsFullyExpanded() && !node.IsTerminal() {
+		node = OriginalBestUCT(node, c)
+	}
+	return node
+}
+
+// Expand if there are moves left to try, creating new children
+func ExpandLeaf(node *Node) *Node {
+	if node.IsTerminal() {
+		return node
+	}
+	return node.Expand()
+}
+
+// This function was split for clarity (DO NOT USE)
 // Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
 func OriginalTraverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
@@ -230,7 +247,8 @@ func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeF
 	} else {
 		for i := 0; i < iterations; i++ {
 			// It does not benefit from being agressive on white, so we use Original Traverseß
-			nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse.
+			selected := Select(currentRoot, 2.0)
+			nodeToSimulateFrom := ExpandLeaf(selected)
 			result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 			InnacurateBackpropagate(nodeToSimulateFrom, result, optimizeFor)
 		}
@@ -245,7 +263,8 @@ func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, rng *rand.R
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
-		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+		selected := Select(currentRoot, 2.0)
+		nodeToSimulateFrom := ExpandLeaf(selected)
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
@@ -258,7 +277,8 @@ func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *N
 		return currentRoot
 	}
 	for i := 0; i < iterations; i++ {
-		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+		selected := Select(currentRoot, 2.0)
+		nodeToSimulateFrom := ExpandLeaf(selected)
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
@@ -271,7 +291,8 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 		return nil
 	}
 	for i := 0; i < iterations; i++ {
-		nodeToSimulateFrom := OriginalTraverse(currentRoot) // Select and Expand are coded in Traverse
+		selected := Select(currentRoot, 2.0)
+		nodeToSimulateFrom := ExpandLeaf(selected)
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
