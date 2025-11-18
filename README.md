@@ -29,6 +29,10 @@ Uses Montecarlo Tree search to select the best move.
 - Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
 - At endgame, run another Algorithm instead of MCTS maybe Minimax (The depth should be small enough to get the actual best move)
 - ~~When calling NextNodeFromInput we create a new node, but maybe we can take a node that already exists, if it is kept in the tree. This way we are saving the information gained from the backpropagation that has reached that node. Additionally we can cut a subtree starting from that node, that way the backpropagation algorithm does not have to run until the initial root node (the one that started the game). This would improve the amount of information we have at any time and the speed of the program~~ (DONE)
+- Add a way to simulate based on time rather than simulation count
+- Add a way to simulate while the opponent makes its move
+- Implement parent Q initialization
+- Virtual loss for the parallelization (?)
 - Implement NegaScout Algorithm (?)
 - Improve speed and memory allocation
     - ~~Change to smaller types where possible~~ (DONE for uint8)
