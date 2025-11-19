@@ -26,7 +26,7 @@ const (
 )
 
 type Game struct {
-	node           *Node
+	node           *PUCTNode
 	boardImage     *ebiten.Image
 	waitingForUser bool   // We use this to keep the asynchronous code out of the loop
 	legalMoves     uint64 // We put it here because we calculate it at the end of the machine turn
@@ -39,7 +39,7 @@ func (g *Game) UpdateStartScreen() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x > 50 && x < 200 && y > 200 && y < 250 { // Black button
-			initialNode := InitialRootNode()
+			initialNode := InitialRootPUCTNode()
 			g.node = initialNode
 			g.userIsBlack = true
 			g.state = StatePlaying
@@ -50,7 +50,7 @@ func (g *Game) UpdateStartScreen() {
 				g.node.GameState.Boards.White,
 			)
 		} else if x > 50 && x < 200 && y > 300 && y < 350 { // White button
-			initialNode := InitialRootNode()
+			initialNode := InitialRootPUCTNode()
 			g.node = initialNode
 			g.userIsBlack = false
 			g.state = StatePlaying
@@ -63,7 +63,7 @@ func (g *Game) UpdateEndScreen() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x > 50 && x < 200 && y > 200 && y < 250 { // Restart as Black
-			initialNode := InitialRootNode()
+			initialNode := InitialRootPUCTNode()
 			g.node = initialNode
 			g.userIsBlack = true
 			g.state = StatePlaying
@@ -74,7 +74,7 @@ func (g *Game) UpdateEndScreen() {
 				g.node.GameState.Boards.White,
 			)
 		} else if x > 50 && x < 200 && y > 300 && y < 350 { // Restart as White
-			initialNode := InitialRootNode()
+			initialNode := InitialRootPUCTNode()
 			g.node = initialNode
 			g.userIsBlack = false
 			g.state = StatePlaying
@@ -98,14 +98,14 @@ func (g *Game) Update() error {
 				mask := uint64(1) << (row*8 + col)
 
 				if g.legalMoves&mask != 0 {
-					g.node = NextNodeFromInput(g.node, [2]uint8{row, col})
+					g.node = NextPUCTNodeFromInput(g.node, [2]uint8{row, col})
 					g.waitingForUser = false
 				}
 			}
 		} else {
 			if !g.userIsBlack {
 				if g.node.GameState.BlackTurn {
-					g.node = SingleRunParallelizationMCTS(g.node, 500, g.rng)
+					g.node = MonteCarloTreeSearchPUCT(g.node, 500, g.rng)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if !g.node.GameState.BlackTurn {
@@ -114,7 +114,7 @@ func (g *Game) Update() error {
 				}
 			} else {
 				if !g.node.GameState.BlackTurn {
-					g.node = SingleRunParallelizationMCTS(g.node, 500, g.rng)
+					g.node = MonteCarloTreeSearchPUCT(g.node, 500, g.rng)
 				}
 				// Calculate the possible moves of the opponent if you pass the turn to them
 				if g.node.GameState.BlackTurn {
@@ -126,7 +126,7 @@ func (g *Game) Update() error {
 		}
 
 		// Check if game is over
-		if g.node.IsTerminal() {
+		if g.node.IsTerminalPUCT() {
 			g.state = StateEndScreen
 		}
 
@@ -168,7 +168,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case StateEndScreen:
 		screen.Fill(color.RGBA{20, 20, 20, 255})
-		score := g.node.CurrentScore()
+		score := g.node.CurrentScorePUCT()
 		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Game Over!\nBlack: %d\nWhite: %d", score[0], score[1]), 50, 100)
 		ebitenutil.DebugPrintAt(screen, "Restart as Black", 50, 200)
 		ebitenutil.DebugPrintAt(screen, "Restart as White", 50, 300)

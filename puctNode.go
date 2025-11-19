@@ -9,9 +9,10 @@ type PUCTNode struct {
 	GameState    State    // Current boards with whose turn is it to move
 	Move         [2]uint8 // The move that led us here
 	UntriedMoves [][2]uint8
-	N            map[[2]uint8]int     // Visit count for each action
-	Q            map[[2]uint8]float64 // Average reward for each action
-	P            map[[2]uint8]float64 // Prior probabilities for each action
+	N            map[[2]uint8]int // Visit count for each action (Apparently other implementations write it like this)
+	// But i could get the same information of N by iterating over the child and getting the visits
+	Q map[[2]uint8]float64 // Average reward for each action
+	P map[[2]uint8]float64 // Prior probabilities for each action
 }
 
 func InitialRootPUCTNode() *PUCTNode {
@@ -57,12 +58,21 @@ func NewPUCTNode(state State, parent *PUCTNode, move [2]uint8) *PUCTNode {
 	}
 	movesFromCurrent := ArrayOfPositionalMoves(ArrayOfMoves(legalMoves))
 
+	priors := make(map[[2]uint8]float64, len(movesFromCurrent))
+	uniformPrior := 1.0 / float64(len(movesFromCurrent))
+	for _, m := range movesFromCurrent {
+		priors[m] = uniformPrior
+	}
+
 	return &PUCTNode{
 		Parent:       parent,
 		GameState:    state,
 		Move:         move,
 		UntriedMoves: movesFromCurrent,
 		Children:     []*PUCTNode{},
+		N:            make(map[[2]uint8]int),
+		Q:            make(map[[2]uint8]float64),
+		P:            priors,
 	}
 }
 

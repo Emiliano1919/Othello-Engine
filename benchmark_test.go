@@ -21,6 +21,14 @@ func BenchmarkOriginalMonteCarloTreeSearch(b *testing.B) {
 		OriginalMonteCarloTreeSearch(node, 500, rng)
 	}
 }
+func BenchmarkMonteCarloTreeSearchPUCT(b *testing.B) {
+	node := InitialRootPUCTNode()
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for b.Loop() {
+		MonteCarloTreeSearchPUCT(node, 500, rng)
+	}
+}
+
 func BenchmarkSingleRunParallelizationMCTS(b *testing.B) {
 	node := InitialRootNode()
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -53,14 +61,6 @@ func BenchmarkInnacurateMonteCarloTreeSearchParallel(b *testing.B) {
 			nodePM := InitialRootNode()
 			rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 			InnacurateMonteCarloTreeSearch(nodePM, 500, OPTIMIZE_FOR_BLACK, rng)
-		}
-	})
-}
-
-func BenchmarkInitialNodeCreationParallel(b *testing.B) {
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			InitialRootNode()
 		}
 	})
 }
