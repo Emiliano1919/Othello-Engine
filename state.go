@@ -181,7 +181,7 @@ func FastArrayOfMoves(legal uint64) []uint8 {
 	// According to a paper I found the maximum size ever is 33
 	res := make([]uint8, 0, 33)
 
-	for m := legal; m != 0; m &= m - 1 {
+	for m := legal; m != 0; m &= m - 1 { // Use kadanes algorithm O(log n)
 		index := bits.TrailingZeros64(m)
 		res = append(res, uint8(index))
 	}

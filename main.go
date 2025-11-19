@@ -246,79 +246,79 @@ func Versus() {
 }
 
 // Versus main
-func main() {
-	start := time.Now()
-	rng := rand.New(rand.NewSource(start.UnixNano()))
-	// Just one is needed because access is sequential between the 2 AIs  (they dont move at the same time)
-	// And the parallelization already has the necessary protections for sharing rng (each goroutine has its own rng)
-	OpponentWinCounter := 0
-	DrawsCounter := 0
-	Games := 100
-	for i := 0; i < Games; i++ {
-		// Each AI needs its own tree, so that they do not share knowledge and influence the other
-		// But they will update each other of their respective moves
-		initialNodeP1 := InitialRootNode()
-		initialNodeP2 := InitialRootNode()
-		OpponentIsBlack := false // Is the opponent of baseline black?
-		var nodeP1 *Node
-		var nodeP2 *Node
-		if !OpponentIsBlack {
-			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500, rng)
-			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
-			//nodeP2.GameState.Boards.PrintBoard()
-		} else {
-			nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 200, rng)
-			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
-			// nodeP1.GameState.Boards.PrintBoard()
-		}
-		for !nodeP1.IsTerminal() { // This works because both nodes update each other
-			if !OpponentIsBlack {
-				if !nodeP1.GameState.BlackTurn {
-					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
-					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-					//nodeP1.GameState.Boards.PrintBoard()
-				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
-					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-					//nodeP2.GameState.Boards.PrintBoard()
-				}
-			} else {
-				if nodeP1.GameState.BlackTurn {
-					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
-					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
-					//nodeP1.GameState.Boards.PrintBoard()
-				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
-					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
-					//nodeP2.GameState.Boards.PrintBoard()
-				}
-			}
-		}
-		if nodeP1.IsTerminal() {
-			//OutputResult(nodeP1)
-			//OutputResult(nodeP2)
-			switch nodeP1.Winner() {
-			case BLACK_WIN:
-				if OpponentIsBlack {
-					OpponentWinCounter++
-				}
-			case WHITE_WIN:
-				if !OpponentIsBlack {
-					OpponentWinCounter++
-				}
-			case DRAW:
-				DrawsCounter++
-			}
-		}
-		fmt.Printf("Number of finalized games: %d\n", i+1)
-	}
-	elapsed := time.Since(start)
-	fmt.Printf("Opponent Wins: %d\n", OpponentWinCounter)
-	fmt.Printf("Draws: %d\n", DrawsCounter)
-	fmt.Printf("Total Games ran: %d\n", Games)
-	fmt.Printf("Total run time for all the games: %s", elapsed)
+// func main() {
+// 	start := time.Now()
+// 	rng := rand.New(rand.NewSource(start.UnixNano()))
+// 	// Just one is needed because access is sequential between the 2 AIs  (they dont move at the same time)
+// 	// And the parallelization already has the necessary protections for sharing rng (each goroutine has its own rng)
+// 	OpponentWinCounter := 0
+// 	DrawsCounter := 0
+// 	Games := 100
+// 	for i := 0; i < Games; i++ {
+// 		// Each AI needs its own tree, so that they do not share knowledge and influence the other
+// 		// But they will update each other of their respective moves
+// 		initialNodeP1 := InitialRootNode()
+// 		initialNodeP2 := InitialRootNode()
+// 		OpponentIsBlack := false // Is the opponent of baseline black?
+// 		var nodeP1 *Node
+// 		var nodeP2 *Node
+// 		if !OpponentIsBlack {
+// 			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500, rng)
+// 			nodeP2 = NextNodeFromInput(initialNodeP2, nodeP1.Move)
+// 			//nodeP2.GameState.Boards.PrintBoard()
+// 		} else {
+// 			nodeP2 = SingleRunParallelizationMCTS(initialNodeP2, 200, rng)
+// 			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
+// 			// nodeP1.GameState.Boards.PrintBoard()
+// 		}
+// 		for !nodeP1.IsTerminal() { // This works because both nodes update each other
+// 			if !OpponentIsBlack {
+// 				if !nodeP1.GameState.BlackTurn {
+// 					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
+// 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+// 					//nodeP1.GameState.Boards.PrintBoard()
+// 				} else {
+// 					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
+// 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+// 					//nodeP2.GameState.Boards.PrintBoard()
+// 				}
+// 			} else {
+// 				if nodeP1.GameState.BlackTurn {
+// 					nodeP2 = SingleRunParallelizationMCTS(nodeP2, 200, rng)
+// 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
+// 					//nodeP1.GameState.Boards.PrintBoard()
+// 				} else {
+// 					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
+// 					nodeP2 = NextNodeFromInput(nodeP2, nodeP1.Move)
+// 					//nodeP2.GameState.Boards.PrintBoard()
+// 				}
+// 			}
+// 		}
+// 		if nodeP1.IsTerminal() {
+// 			//OutputResult(nodeP1)
+// 			//OutputResult(nodeP2)
+// 			switch nodeP1.Winner() {
+// 			case BLACK_WIN:
+// 				if OpponentIsBlack {
+// 					OpponentWinCounter++
+// 				}
+// 			case WHITE_WIN:
+// 				if !OpponentIsBlack {
+// 					OpponentWinCounter++
+// 				}
+// 			case DRAW:
+// 				DrawsCounter++
+// 			}
+// 		}
+// 		fmt.Printf("Number of finalized games: %d\n", i+1)
+// 	}
+// 	elapsed := time.Since(start)
+// 	fmt.Printf("Opponent Wins: %d\n", OpponentWinCounter)
+// 	fmt.Printf("Draws: %d\n", DrawsCounter)
+// 	fmt.Printf("Total Games ran: %d\n", Games)
+// 	fmt.Printf("Total run time for all the games: %s", elapsed)
 
-}
+// }
 
 // Debugging Main
 // func main() {
@@ -364,3 +364,32 @@ func main() {
 // 		OutputResult(node)
 // 	}
 // }
+
+func main() {
+	// Just a quick test to verify the output is the same
+	initialNode := InitialRootNode()
+
+	legal := generateMoves(initialNode.GameState.Boards.Black, initialNode.GameState.Boards.White)
+	PrintBitboard(legal)
+
+	v := (uint64(1) << 0) |
+		(uint64(1) << 2) |
+		(uint64(1) << 44) |
+		(uint64(1) << 63)
+	moves := FastArrayOfMoves(v)
+	otherMoves := ArrayOfMoves(v)
+	otherMovesPos := ArrayOfPositionalMoves(otherMoves)
+	PrintBitboard(v)
+	fmt.Println("ArrayOfMoves output:", otherMoves)
+	fmt.Println("ArrayOfPositionalMoves output:", otherMovesPos)
+	fmt.Println("FastArrayOfMoves output:", moves)
+
+	fmt.Println("Moves (row, col):")
+	for _, m := range moves {
+		row := m >> 3
+		col := m & 7
+		fmt.Printf("  (%d, %d)\n", row, col)
+	}
+	initialNode.GameState.Boards.PrintBoard()
+	initialNode.GameState.PrintBoardWithMoves()
+}
