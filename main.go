@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math/rand"
 	"time"
 
@@ -181,22 +182,22 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 //Visual Main
 
-// func main() {
-// 	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
-// 	size := boardSize*tileSize + (boardSize+1)*tileMargin
-// 	ebiten.SetWindowSize(size, size)
-// 	// Create a new RNG
-// 	start := time.Now()
-// 	rng := rand.New(rand.NewSource(start.UnixNano()))
+func main() {
+	ebiten.SetWindowTitle("Othello Engine (Ebiten Board)")
+	size := boardSize*tileSize + (boardSize+1)*tileMargin
+	ebiten.SetWindowSize(size, size)
+	// Create a new RNG
+	start := time.Now()
+	rng := rand.New(rand.NewSource(start.UnixNano()))
 
-// 	// Pass rng to the Game instance
-// 	game := &Game{
-// 		rng: rng,
-// 	}
-// 	if err := ebiten.RunGame(game); err != nil {
-// 		log.Fatal(err)
-// 	}
-// }
+	// Pass rng to the Game instance
+	game := &Game{
+		rng: rng,
+	}
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func Versus() {
 	start := time.Now()
@@ -365,31 +366,31 @@ func Versus() {
 // 	}
 // }
 
-func main() {
-	// Just a quick test to verify the output is the same
-	initialNode := InitialRootNode()
+// func main() {
+// 	// Just a quick test to verify the output is the same
+// 	initialNode := InitialRootNode()
 
-	legal := generateMoves(initialNode.GameState.Boards.Black, initialNode.GameState.Boards.White)
-	PrintBitboard(legal)
+// 	legal := generateMoves(initialNode.GameState.Boards.Black, initialNode.GameState.Boards.White)
+// 	PrintBitboard(legal)
 
-	v := (uint64(1) << 0) |
-		(uint64(1) << 2) |
-		(uint64(1) << 44) |
-		(uint64(1) << 63)
-	moves := FastArrayOfMoves(v)
-	otherMoves := ArrayOfMoves(v)
-	otherMovesPos := ArrayOfPositionalMoves(otherMoves)
-	PrintBitboard(v)
-	fmt.Println("ArrayOfMoves output:", otherMoves)
-	fmt.Println("ArrayOfPositionalMoves output:", otherMovesPos)
-	fmt.Println("FastArrayOfMoves output:", moves)
+// 	v := (uint64(1) << 0) |
+// 		(uint64(1) << 2) |
+// 		(uint64(1) << 44) |
+// 		(uint64(1) << 63)
+// 	moves := FastArrayOfMoves(v)
+// 	otherMoves := ArrayOfMoves(v)
+// 	otherMovesPos := ArrayOfPositionalMoves(otherMoves)
+// 	PrintBitboard(v)
+// 	fmt.Println("ArrayOfMoves output:", otherMoves)
+// 	fmt.Println("ArrayOfPositionalMoves output:", otherMovesPos)
+// 	fmt.Println("FastArrayOfMoves output:", moves)
 
-	fmt.Println("Moves (row, col):")
-	for _, m := range moves {
-		row := m >> 3
-		col := m & 7
-		fmt.Printf("  (%d, %d)\n", row, col)
-	}
-	initialNode.GameState.Boards.PrintBoard()
-	initialNode.GameState.PrintBoardWithMoves()
-}
+// 	fmt.Println("Moves (row, col):")
+// 	for _, m := range moves {
+// 		row := m >> 3
+// 		col := m & 7
+// 		fmt.Printf("  (%d, %d)\n", row, col)
+// 	}
+// 	initialNode.GameState.Boards.PrintBoard()
+// 	initialNode.GameState.PrintBoardWithMoves()
+// }
