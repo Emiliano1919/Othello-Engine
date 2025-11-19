@@ -38,7 +38,11 @@ Uses Montecarlo Tree search to select the best move.
     - ~~Change to smaller types where possible~~ (DONE for uint8)
     - ~~Start using profiler and benchmarking to test~~ (DONE) 
     - ~~Optimize the random number generator~~ (DONE)
-    - Optimize the memory expensive ArrayOfPositionalMoves, and ArrayOfMoves
+    - ~~Optimize the memory expensive ArrayOfPositionalMoves, and ArrayOfMoves~~ (DONE)
+- Improve code readability
+    - CurrentScore can be a gamestate function instead of a node function
+    - Try to avoid repetition
+    - Improve comments
 
 ## Current benchmarking results:
 
