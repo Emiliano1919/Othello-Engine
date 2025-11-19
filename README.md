@@ -8,11 +8,11 @@ Uses Montecarlo Tree search to select the best move.
 
 ## Next features:
 
-    1. ~~AI will be able to play as not only black but also white~~ (DONE)
-    2. ~~Will have a nicer UI (not just terminal)~~ (DONE, but can be improved)
+    1. AI will be able to play as not only black but also white (DONE)
+    2. Will have a nicer UI (not just terminal) (DONE, but can be improved)
     3. Will have difficulty selection
     4. Will have a harder AI
-    5. ~~WIll be available on itchio or something~~ (Available on Itchio https://nanuklovesfish3.itch.io/simple-othello)
+    5. WIll be available on itchio or something (Available on Itchio https://nanuklovesfish3.itch.io/simple-othello)
 
 ## Current Ideas:
 - ~~Implement a way to test 2 AIs against each other, so that they can be benchmarked~~ (DONE)
@@ -51,16 +51,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      30	  34751862 ns/op	 1706158 B/op	  110736 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      33	  34726694 ns/op	 1655930 B/op	  110337 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     136	   8713589 ns/op	 1757373 B/op	  115098 allocs/op
-    BenchmarkRollout-8                                  	   16195	     73988 ns/op	    3311 B/op	     232 allocs/op
-    BenchmarkRolloutParallel-8                          	   77290	     15196 ns/op	    3314 B/op	     232 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     158	   7617586 ns/op	 1744979 B/op	  113841 allocs/op
-    BenchmarkInitialNodeCreationParallel-8              	10059080	       101.3 ns/op	     128 B/op	       3 allocs/op
-    BenchmarkVersus-8                                   	       2	 746328500 ns/op	49786616 B/op	 3259000 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  29879812 ns/op	  167925 B/op	    5234 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30451938 ns/op	   83539 B/op	    2506 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     163	   7167516 ns/op	  130636 B/op	    2326 allocs/op
+    BenchmarkRollout-8                                  	   18514	     64359 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   92695	     12469 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     200	   6247379 ns/op	  164263 B/op	    4874 allocs/op
+    BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
+    BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op
     PASS
-    ok  	othello	11.083s
+    ok  	othello	10.096s
 
 
 
@@ -217,3 +217,117 @@ Extract from profiler after improvemnt for OriginalMonteCarloTreeSearch:
         0.01s  0.93% 92.52%      0.01s  0.93%  internal/runtime/atomic.(*Uint32).Add
         0.01s  0.93% 93.46%      0.01s  0.93%  math/rand.(*rngSource).Uint64
         0.01s  0.93% 94.39%      0.06s  5.61%  othello.ArrayOfPositionalMoves
+
+### Inneficient way of representing moves
+
+My previous implementation used an array of []uint8 for each node, and i also used to convert this into a positional [2]uint8 representation  (row and column). Chainging this to a simple representation and calculating the row and column parts on the fly using bit manipulation tricks (modulo using & and division using shift) reduced massively the use of memory and the speed of execution.
+
+Before:
+    BenchmarkSingleRunParallelizationMCTS-8   	     136	   8759955 ns/op	 1757296 B/op	  115100 allocs/op
+    PASS
+    ok  	othello	1.934s
+                                                                        
+    File: othello.test
+    Type: alloc_space
+    Time: 2025-11-18 17:07:16 EST
+    Entering interactive mode (type "help" for commands, "o" for options)
+    (pprof) top
+    Showing nodes accounting for 236.10MB, 98.04% of 240.83MB total
+    Dropped 24 nodes (cum <= 1.20MB)
+    Showing top 10 nodes out of 35
+        flat  flat%   sum%        cum   cum%
+        126MB 52.32% 52.32%      126MB 52.32%  othello.ArrayOfPositionalMoves (inline)
+    89.50MB 37.16% 89.49%    89.50MB 37.16%  othello.ArrayOfMoves (inline)
+        8.04MB  3.34% 92.82%     8.04MB  3.34%  math/rand.newSource
+        6.50MB  2.70% 95.52%       10MB  4.15%  othello.NewNode
+        2MB  0.83% 96.36%        2MB  0.83%  runtime.allocm
+        1.50MB  0.62% 96.98%     2.50MB  1.04%  github.com/hajimehoshi/ebiten/v2/internal/gamepaddb.parseLine
+        1.17MB  0.48% 97.46%     1.74MB  0.72%  compress/flate.(*compressor).init
+        0.88MB  0.37% 97.83%     2.62MB  1.09%  compress/flate.NewWriter (inline)
+        0.50MB  0.21% 98.04%       10MB  4.15%  othello.(*Node).Expand
+            0     0% 98.04%     2.62MB  1.09%  compress/gzip.(*Writer).Write
+    go tool pprof cpu.out                                                                                 
+    File: othello.test
+    Type: cpu
+    Time: 2025-11-17 19:48:56 EST
+    Duration: 1.32s, Total samples = 5.51s (418.89%)
+    Entering interactive mode (type "help" for commands, "o" for options)
+    (pprof) top
+    Showing nodes accounting for 5230ms, 94.92% of 5510ms total
+    Dropped 38 nodes (cum <= 27.55ms)
+    Showing top 10 nodes out of 76
+        flat  flat%   sum%        cum   cum%
+        1570ms 28.49% 28.49%     1610ms 29.22%  othello.shift (inline)
+        930ms 16.88% 45.37%      930ms 16.88%  runtime.pthread_cond_signal
+        650ms 11.80% 57.17%     1900ms 34.48%  othello.generateMoves
+        570ms 10.34% 67.51%      570ms 10.34%  runtime.madvise
+        460ms  8.35% 75.86%      460ms  8.35%  runtime.usleep
+        360ms  6.53% 82.40%      360ms  6.53%  runtime.pthread_cond_wait
+        230ms  4.17% 86.57%      310ms  5.63%  othello.ArrayOfMoves
+        190ms  3.45% 90.02%      620ms 11.25%  othello.resolveMove
+        140ms  2.54% 92.56%      140ms  2.54%  runtime.asyncPreempt
+        130ms  2.36% 94.92%      130ms  2.36%  runtime.pthread_kill
+
+After:
+
+    BenchmarkSingleRunParallelizationMCTS-8   	     160	   7394913 ns/op	  130839 B/op	    2324 allocs/op
+    PASS
+    ok  	othello	1.817s
+    File: othello.test
+    Type: alloc_space
+    Time: 2025-11-18 23:22:53 EST
+    Entering interactive mode (type "help" for commands, "o" for options)
+    (pprof) unit MB
+    did you mean: unit=MB
+    (pprof) unit=MB
+    (pprof) top    
+    Showing nodes accounting for 24.82MB, 86.12% of 28.82MB total
+    Showing top 10 nodes out of 76
+        flat  flat%   sum%        cum   cum%
+        8.54MB 29.64% 29.64%     8.54MB 29.64%  math/rand.newSource
+        8.50MB 29.49% 59.13%    10.50MB 36.43%  othello.NewNode
+        1.50MB  5.21% 64.34%     1.50MB  5.21%  github.com/hajimehoshi/ebiten/v2/internal/gamepaddb.parseLine
+        1.50MB  5.20% 69.55%     1.50MB  5.20%  othello.ArrayOfPositionalMoves (inline)
+        1.16MB  4.01% 73.56%     1.16MB  4.01%  runtime/pprof.StartCPUProfile
+        1MB  3.48% 77.05%        1MB  3.48%  github.com/hajimehoshi/ebiten/v2/internal/graphics.shaderSuffix
+        1MB  3.48% 80.52%        1MB  3.48%  runtime.allocm
+        0.55MB  1.90% 82.42%     0.55MB  1.90%  github.com/hajimehoshi/ebiten/v2.imageToBytesSlow
+        0.55MB  1.90% 84.33%     0.55MB  1.90%  image.NewNRGBA
+        0.52MB  1.79% 86.12%     0.52MB  1.79%  regexp.(*bitState).reset
+    Showing nodes accounting for 5030ms, 96.92% of 5190ms total
+    Dropped 31 nodes (cum <= 25.95ms)
+    Showing top 10 nodes out of 65
+        flat  flat%   sum%        cum   cum%
+        1630ms 31.41% 31.41%     1630ms 31.41%  othello.shift (inline)
+        1480ms 28.52% 59.92%     1480ms 28.52%  runtime.pthread_cond_signal
+        860ms 16.57% 76.49%     2090ms 40.27%  othello.generateMoves
+        330ms  6.36% 82.85%      330ms  6.36%  runtime.madvise
+        300ms  5.78% 88.63%      710ms 13.68%  othello.resolveMove
+        200ms  3.85% 92.49%      200ms  3.85%  runtime.pthread_cond_wait
+        90ms  1.73% 94.22%       90ms  1.73%  runtime.memclrNoHeapPointers
+        70ms  1.35% 95.57%       70ms  1.35%  runtime.usleep
+        40ms  0.77% 96.34%     2860ms 55.11%  othello.SimulateRollout
+        30ms  0.58% 96.92%       30ms  0.58%  internal/runtime/atomic.(*UnsafePointer).Load
+
+Additionally there were massive improvements in terms of allocations and bit operations:
+Before:
+
+        BenchmarkInnacurateMonteCarloTreeSearch-8           	      30	  34751862 ns/op	 1706158 B/op	  110736 allocs/op
+        BenchmarkOriginalMonteCarloTreeSearch-8             	      33	  34726694 ns/op	 1655930 B/op	  110337 allocs/op
+        BenchmarkSingleRunParallelizationMCTS-8             	     136	   8713589 ns/op	 1757373 B/op	  115098 allocs/op
+        BenchmarkRollout-8                                  	   16195	     73988 ns/op	    3311 B/op	     232 allocs/op
+        BenchmarkRolloutParallel-8                          	   77290	     15196 ns/op	    3314 B/op	     232 allocs/op
+        BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     158	   7617586 ns/op	 1744979 B/op	  113841 allocs/op
+        BenchmarkInitialNodeCreationParallel-8              	10059080	       101.3 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                                   	       2	 746328500 ns/op	49786616 B/op	 3259000 allocs/op
+
+After (Notice the 0s):
+
+        BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  29879812 ns/op	  167925 B/op	    5234 allocs/op
+        BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30451938 ns/op	   83539 B/op	    2506 allocs/op
+        BenchmarkSingleRunParallelizationMCTS-8             	     163	   7167516 ns/op	  130636 B/op	    2326 allocs/op
+        BenchmarkRollout-8                                  	   18514	     64359 ns/op	       0 B/op	       0 allocs/op
+        BenchmarkRolloutParallel-8                          	   92695	     12469 ns/op	       0 B/op	       0 allocs/op
+        BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     200	   6247379 ns/op	  164263 B/op	    4874 allocs/op
+        BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
+        BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op

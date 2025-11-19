@@ -1,5 +1,7 @@
 package main
 
+import "math/bits"
+
 type State struct {
 	Boards    Board
 	BlackTurn bool
@@ -175,6 +177,17 @@ func generateMoves(myDisks, oppDisks uint64) uint64 {
 	return legalMoves
 }
 
+func FastArrayOfMoves(legal uint64) []uint8 {
+	// According to a paper I found the maximum size ever is 33
+	res := make([]uint8, 0, 33)
+
+	for m := legal; m != 0; m &= m - 1 {
+		index := bits.TrailingZeros64(m)
+		res = append(res, uint8(index))
+	}
+	return res
+}
+
 // Get a sorted array of the legal move locations in the board
 func ArrayOfMoves(legalMoves uint64) []uint8 {
 	var res []uint8
@@ -193,8 +206,8 @@ func ArrayOfMoves(legalMoves uint64) []uint8 {
 func ArrayOfPositionalMoves(legalMoves []uint8) [][2]uint8 {
 	var res [][2]uint8
 	for _, move := range legalMoves {
-		row := uint8(move / 8)
-		col := uint8(move % 8)
+		row := uint8(move >> 3) // Faster division by 8
+		col := uint8(move & 7)  // Faster modulo 8
 		res = append(res, [2]uint8{row, col})
 	}
 	return res

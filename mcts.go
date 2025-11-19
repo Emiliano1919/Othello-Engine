@@ -138,10 +138,12 @@ func SimulateRollout(state State, random *rand.Rand) WinState {
 			continue
 		}
 
-		moveArray := ArrayOfPositionalMoves(ArrayOfMoves(moves))
+		moveArray := FastArrayOfMoves(moves)
 		move := moveArray[random.Intn(len(moveArray))] // Here is the rollout ppolicy  which is random
+		row := move >> 3
+		column := move & 7
 
-		current.Boards.MakeMove(current.BlackTurn, move[0], move[1])
+		current.Boards.MakeMove(current.BlackTurn, row, column)
 		current.BlackTurn = !current.BlackTurn
 	}
 	// 1 = Black win, 0 = White win, 2 = draw
