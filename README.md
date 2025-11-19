@@ -24,6 +24,7 @@ Uses Montecarlo Tree search to select the best move.
         - Test this version against the original version and the single run parallelization
 - Create a Neural Network that analyzes the current leaf to see how it will play out (maybe through self play maybe through a dataset)
 - Replace UCT with other methods seen in previous research paper
+    - ~~Implement PUCT~~ (DONE)
     - Ask for questions to the respective creators of the evaluation functions (?)
 - Get EDAX or Egaroucid running to test the game
 - Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
@@ -335,3 +336,32 @@ After (Notice the 0s):
         BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     200	   6247379 ns/op	  164263 B/op	    4874 allocs/op
         BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
         BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op
+
+### Implementation of MCTS with PUCT
+I had to implement a whole new MCTS fit to use PUCT, but it seems it is better than the common UCT.
+It is not currently optimized so it can still be improved in terms of speed, but the results against montecarlo tree search with UCT are promising.
+
+Benchmark: 
+
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      37	  31263037 ns/op	  296617 B/op	    4993 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30599989 ns/op	   83594 B/op	    2508 allocs/op
+
+As you can see above the writes are triple those of the original MCTS and the allocations are almos double. I believe this is to my way of representing the moves as [2]uint8, maybe a switch to []uint8 would improve this.
+
+Results as the white opponent of the MCTS UCT (both having 500 simulations per turn):
+
+    Opponent Wins: 57
+    Draws: 5
+    Total Games ran: 100
+
+    Opponent Wins: 67
+    Draws: 7
+    Total Games ran: 100
+
+I have ran it as white multiple times and it appears that we get variable results but all above 57 and below 69 wins. This is quite a lot, but I also wonder if the fact that they both share the rng affects the code. I might try it later with 2 independent rng sources (Theoretically it should not affect, but i could do it just to be sure).
+
+Results as the black opponent of the MCTS UCT (both having 500 simulations per turn):
+
+    Opponent Wins: 64
+    Draws: 6
+    Total Games ran: 100
