@@ -325,3 +325,10 @@ func WinnerState(state State) WinState {
 		return DRAW // Draw
 	}
 }
+
+// Return the current score of the node. Position 0 is black, position 1 is white
+func CurrentStateScore(state State) [2]int {
+	blackScore := state.Boards.CountOfPieces(true)
+	whiteScore := state.Boards.CountOfPieces(false)
+	return [2]int{blackScore, whiteScore}
+}

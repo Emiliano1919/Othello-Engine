@@ -168,7 +168,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case StateEndScreen:
 		screen.Fill(color.RGBA{20, 20, 20, 255})
-		score := g.node.CurrentScorePUCT()
+		score := CurrentStateScore(g.node.GameState)
 		ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Game Over!\nBlack: %d\nWhite: %d", score[0], score[1]), 50, 100)
 		ebitenutil.DebugPrintAt(screen, "Restart as Black", 50, 200)
 		ebitenutil.DebugPrintAt(screen, "Restart as White", 50, 300)
