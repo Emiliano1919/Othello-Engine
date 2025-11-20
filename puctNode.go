@@ -6,13 +6,13 @@ type PUCTNode struct {
 	Visits       int
 	Parent       *PUCTNode
 	Children     []*PUCTNode
-	GameState    State    // Current boards with whose turn is it to move
-	Move         [2]uint8 // The move that led us here
-	UntriedMoves [][2]uint8
-	N            map[[2]uint8]int // Visit count for each action (Apparently other implementations write it like this)
+	GameState    State // Current boards with whose turn is it to move
+	Move         uint8 // The move that led us here
+	UntriedMoves []uint8
+	N            map[uint8]int // Visit count for each action (Apparently other implementations write it like this)
 	// But i could get the same information of N by iterating over the child and getting the visits
-	Q map[[2]uint8]float64 // Average reward for each action
-	P map[[2]uint8]float64 // Prior probabilities for each action
+	Q map[uint8]float64 // Average reward for each action
+	P map[uint8]float64 // Prior probabilities for each action
 }
 
 func InitialRootPUCTNode() *PUCTNode {
@@ -22,21 +22,21 @@ func InitialRootPUCTNode() *PUCTNode {
 	var state State
 	state.Boards = boards
 	state.BlackTurn = true
-	var empty [2]uint8
-	node = NewPUCTNode(state, nil, empty)
+	var emptyMove uint8
+	node = NewPUCTNode(state, nil, emptyMove)
 	return node
 }
 
-func NextPUCTNodeFromInput(parent *PUCTNode, move [2]uint8) *PUCTNode {
+func NextPUCTNodeFromInput(parent *PUCTNode, moveIndex uint8) *PUCTNode {
 	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
 	for _, child := range parent.Children {
-		if child.Move == move {
+		if child.Move == moveIndex {
 			child.Parent = nil
 			return child
 		}
 	}
-	newBoards := parent.GameState.Boards                             // Copy
-	newBoards.MakeMove(parent.GameState.BlackTurn, move[0], move[1]) // We make the move on the current player
+	newBoards := parent.GameState.Boards                           // Copy
+	newBoards.MakeMoveIndex(parent.GameState.BlackTurn, moveIndex) // We make the move on the current player
 	newState := State{
 		Boards:    newBoards,
 		BlackTurn: !parent.GameState.BlackTurn, // switch turn immediately
@@ -46,19 +46,19 @@ func NextPUCTNodeFromInput(parent *PUCTNode, move [2]uint8) *PUCTNode {
 		//fmt.Println("No valid moves for next player — passing turn back.")
 		newState.BlackTurn = !newState.BlackTurn
 	}
-	return NewPUCTNode(newState, parent, move)
+	return NewPUCTNode(newState, parent, moveIndex)
 }
 
-func NewPUCTNode(state State, parent *PUCTNode, move [2]uint8) *PUCTNode {
+func NewPUCTNode(state State, parent *PUCTNode, move uint8) *PUCTNode {
 	var legalMoves uint64
 	if state.BlackTurn {
 		legalMoves = generateMoves(state.Boards.Black, state.Boards.White)
 	} else {
 		legalMoves = generateMoves(state.Boards.White, state.Boards.Black)
 	}
-	movesFromCurrent := ArrayOfPositionalMoves(ArrayOfMoves(legalMoves))
+	movesFromCurrent := FastArrayOfMoves(legalMoves)
 
-	priors := make(map[[2]uint8]float64, len(movesFromCurrent))
+	priors := make(map[uint8]float64, len(movesFromCurrent))
 	uniformPrior := 1.0 / float64(len(movesFromCurrent))
 	for _, m := range movesFromCurrent {
 		priors[m] = uniformPrior
@@ -70,8 +70,8 @@ func NewPUCTNode(state State, parent *PUCTNode, move [2]uint8) *PUCTNode {
 		Move:         move,
 		UntriedMoves: movesFromCurrent,
 		Children:     []*PUCTNode{},
-		N:            make(map[[2]uint8]int),
-		Q:            make(map[[2]uint8]float64),
+		N:            make(map[uint8]int),
+		Q:            make(map[uint8]float64),
 		P:            priors,
 	}
 }

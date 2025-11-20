@@ -7,9 +7,9 @@ type Node struct {
 	Wins         int
 	Parent       *Node
 	Children     []*Node
-	GameState    State    // Current boards with whose turn is it to move
-	Move         [2]uint8 // The move that led us here
-	UntriedMoves [][2]uint8
+	GameState    State // Current boards with whose turn is it to move
+	Move         uint8 // The move that led us here
+	UntriedMoves []uint8
 }
 
 func InitialRootNode() *Node {
@@ -19,21 +19,22 @@ func InitialRootNode() *Node {
 	var state State
 	state.Boards = boards
 	state.BlackTurn = true
-	var empty [2]uint8
-	node = NewNode(state, nil, empty)
+	var emptyMove uint8
+	node = NewNode(state, nil, emptyMove)
 	return node
 }
 
-func NextNodeFromInput(parent *Node, move [2]uint8) *Node {
+func NextNodeFromInput(parent *Node, moveIndex uint8) *Node {
+
 	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
 	for _, child := range parent.Children {
-		if child.Move == move {
+		if child.Move == moveIndex {
 			child.Parent = nil
 			return child
 		}
 	}
-	newBoards := parent.GameState.Boards                             // Copy
-	newBoards.MakeMove(parent.GameState.BlackTurn, move[0], move[1]) // We make the move on the current player
+	newBoards := parent.GameState.Boards                           // Copy
+	newBoards.MakeMoveIndex(parent.GameState.BlackTurn, moveIndex) // We make the move on the current player
 	newState := State{
 		Boards:    newBoards,
 		BlackTurn: !parent.GameState.BlackTurn, // switch turn immediately
@@ -43,17 +44,17 @@ func NextNodeFromInput(parent *Node, move [2]uint8) *Node {
 		//fmt.Println("No valid moves for next player — passing turn back.")
 		newState.BlackTurn = !newState.BlackTurn
 	}
-	return NewNode(newState, parent, move)
+	return NewNode(newState, parent, moveIndex)
 }
 
-func NewNode(state State, parent *Node, move [2]uint8) *Node {
+func NewNode(state State, parent *Node, move uint8) *Node {
 	var legalMoves uint64
 	if state.BlackTurn {
 		legalMoves = generateMoves(state.Boards.Black, state.Boards.White)
 	} else {
 		legalMoves = generateMoves(state.Boards.White, state.Boards.Black)
 	}
-	movesFromCurrent := ArrayOfPositionalMoves(ArrayOfMoves(legalMoves))
+	movesFromCurrent := FastArrayOfMoves(legalMoves)
 
 	return &Node{
 		Parent:       parent,

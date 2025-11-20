@@ -227,8 +227,31 @@ func (b *Board) HasValidMove(forBlack bool) bool {
 
 // We achieve this using masks
 */
-func (b *Board) IsValidMove(forBlack bool, row, col uint8) bool {
-	mask := uint64(1) << (row*8 + col) // Generate a mask where the 1 is placed where the move is what we want to verify
+func (b *Board) IsValidMovePositional(forBlack bool, row, col uint8) bool {
+	// Check valid board coordinates
+	if row >= 8 || col >= 8 {
+		return false
+	}
+
+	index := row*8 + col // Safe because row,col < 8 → index ∈ [0,63]
+	mask := uint64(1) << index
+
+	if forBlack {
+		return generateMoves(b.Black, b.White)&mask != 0
+	}
+	return generateMoves(b.White, b.Black)&mask != 0
+}
+
+/*
+	Check if a particular move is valid, return true if yes, and 0 if not
+
+// We achieve this using masks
+*/
+func (b *Board) IsValidMoveIndex(forBlack bool, index uint8) bool {
+	if index >= 64 {
+		return false
+	}
+	mask := uint64(1) << index // Generate a mask where the 1 is placed where the move is what we want to verify
 	if forBlack {
 		return generateMoves(b.Black, b.White)&mask != 0
 	}
@@ -264,8 +287,8 @@ func resolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
 /*
 Given a position and a board execute the move.
 */
-func (b *Board) MakeMove(forBlack bool, row, col uint8) {
-	if !b.IsValidMove(forBlack, row, col) {
+func (b *Board) MakeMovePositional(forBlack bool, row, col uint8) {
+	if !b.IsValidMovePositional(forBlack, row, col) {
 		panic("invalid move")
 	}
 
@@ -274,6 +297,18 @@ func (b *Board) MakeMove(forBlack bool, row, col uint8) {
 		resolveMove(&b.Black, &b.White, moveIndex)
 	} else {
 		resolveMove(&b.White, &b.Black, moveIndex)
+	}
+}
+
+func (b *Board) MakeMoveIndex(forBlack bool, index uint8) {
+	if !b.IsValidMoveIndex(forBlack, index) {
+		panic("invalid move")
+	}
+
+	if forBlack {
+		resolveMove(&b.Black, &b.White, index)
+	} else {
+		resolveMove(&b.White, &b.Black, index)
 	}
 }
 

@@ -56,16 +56,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  29879812 ns/op	  167925 B/op	    5234 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30451938 ns/op	   83539 B/op	    2506 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     163	   7167516 ns/op	  130636 B/op	    2326 allocs/op
-    BenchmarkRollout-8                                  	   18514	     64359 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkRolloutParallel-8                          	   92695	     12469 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     200	   6247379 ns/op	  164263 B/op	    4874 allocs/op
-    BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
-    BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30288100 ns/op	  174411 B/op	    2866 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30469754 ns/op	   88376 B/op	    1397 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  31097039 ns/op	  302717 B/op	    3881 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     156	   7634688 ns/op	  142079 B/op	    1518 allocs/op
+    BenchmarkRollout-8                                  	   18026	     65334 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   88774	     13735 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     134	   8810127 ns/op	  179820 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 728645666 ns/op	 6560808 B/op	   78171 allocs/op
     PASS
-    ok  	othello	10.096s
+    ok  	othello	10.540s
 
 
 
@@ -337,6 +337,29 @@ After (Notice the 0s):
         BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
         BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op
 
+#### Chainging to just uint8 to represent moves
+
+Before:
+
+    BenchmarkRollout-8                                  	   18514	     64359 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   92695	     12469 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     200	   6247379 ns/op	  164263 B/op	    4874 allocs/op
+    BenchmarkInitialNodeCreationParallel-8              	11385991	        97.09 ns/op	     128 B/op	       3 allocs/op
+    BenchmarkVersus-8                                   	       2	 599196854 ns/op	 6858336 B/op	  162794 allocs/op
+
+After:
+
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30288100 ns/op	  174411 B/op	    2866 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30469754 ns/op	   88376 B/op	    1397 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  31097039 ns/op	  302717 B/op	    3881 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     156	   7634688 ns/op	  142079 B/op	    1518 allocs/op
+    BenchmarkRollout-8                                  	   18026	     65334 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   88774	     13735 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     134	   8810127 ns/op	  179820 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 728645666 ns/op	 6560808 B/op	   78171 allocs/op
+
+There is still work to be done, optimizing the allocation of the size of the slices used. Paritcularly in the Node creation as we know how many children nodes there will be as a maximum.
+
 ### Implementation of MCTS with PUCT
 I had to implement a whole new MCTS fit to use PUCT, but it seems it is better than the common UCT.
 It is not currently optimized so it can still be improved in terms of speed, but the results against montecarlo tree search with UCT are promising.
@@ -353,10 +376,12 @@ Results as the white opponent of the MCTS UCT (both having 500 simulations per t
     Opponent Wins: 57
     Draws: 5
     Total Games ran: 100
+    Total run time for all the games: 1m40.238196083s
 
     Opponent Wins: 67
     Draws: 7
     Total Games ran: 100
+    Total run time for all the games: 1m50.454568167s
 
 I have ran it as white multiple times and it appears that we get variable results but all above 57 and below 69 wins. This is quite a lot, but I also wonder if the fact that they both share the rng affects the code. I might try it later with 2 independent rng sources (Theoretically it should not affect, but i could do it just to be sure).
 
@@ -365,3 +390,4 @@ Results as the black opponent of the MCTS UCT (both having 500 simulations per t
     Opponent Wins: 64
     Draws: 6
     Total Games ran: 100
+    Total run time for all the games: 1m40.353152166s

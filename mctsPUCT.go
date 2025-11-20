@@ -32,7 +32,7 @@ func (node *PUCTNode) ExpandPUCT() *PUCTNode {
 
 	// We generate a new node because make move does not generate a new board by default
 	newBoards := node.GameState.Boards // Copy
-	newBoards.MakeMove(node.GameState.BlackTurn, move[0], move[1])
+	newBoards.MakeMoveIndex(node.GameState.BlackTurn, move)
 
 	nextState := State{
 		Boards:    newBoards,

@@ -25,7 +25,7 @@ func (node *Node) Expand() *Node {
 
 	// We generate a new node because make move does not generate a new board by default
 	newBoards := node.GameState.Boards // Copy
-	newBoards.MakeMove(node.GameState.BlackTurn, move[0], move[1])
+	newBoards.MakeMoveIndex(node.GameState.BlackTurn, move)
 
 	nextState := State{
 		Boards:    newBoards,
@@ -140,10 +140,8 @@ func SimulateRollout(state State, random *rand.Rand) WinState {
 
 		moveArray := FastArrayOfMoves(moves)
 		move := moveArray[random.Intn(len(moveArray))] // Here is the rollout ppolicy  which is random
-		row := move >> 3
-		column := move & 7
 
-		current.Boards.MakeMove(current.BlackTurn, row, column)
+		current.Boards.MakeMoveIndex(current.BlackTurn, move)
 		current.BlackTurn = !current.BlackTurn
 	}
 	// 1 = Black win, 0 = White win, 2 = draw
@@ -288,7 +286,7 @@ func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *N
 }
 
 // Send back the number of games and wins per move from the root
-func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[[2]uint8][2]int {
+func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[uint8][2]int {
 	if currentRoot.IsTerminal() {
 		return nil
 	}
@@ -298,7 +296,7 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
-	movesWithRatio := make(map[[2]uint8][2]int, len(currentRoot.Children))
+	movesWithRatio := make(map[uint8][2]int, len(currentRoot.Children))
 	for _, child := range currentRoot.Children {
 		movesWithRatio[child.Move] = [2]int{(child.Wins), (child.Visits)}
 	}
@@ -311,7 +309,7 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 // This method decreases the variance according to research
 func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, baseRNG *rand.Rand) *Node {
 	maxProcesses := 9
-	firstLayerRes := make(chan map[[2]uint8][2]int, maxProcesses)
+	firstLayerRes := make(chan map[uint8][2]int, maxProcesses)
 	masterTree := make(chan *Node, 1)
 	go func() {
 		masterTree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine, baseRNG)
@@ -319,7 +317,8 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, b
 	for i := 0; i < maxProcesses; i++ {
 		go func(id int) {
 			parallelRNGi := rand.New(rand.NewSource(time.Now().UnixNano() + int64(id)))
-			broadcastedNode := NewNode(currentRoot.GameState, nil, [2]uint8{})
+			var emptyMove uint8
+			broadcastedNode := NewNode(currentRoot.GameState, nil, emptyMove)
 			// We just need the state of the root (the tree can be generated of it), we don't care about the parent of this one
 			// We need to do this because if we share the original root there will be race conditions
 			parallelResult := OriginalMCTSWinsPlayoutsByMove(broadcastedNode, iterationsPerRoutine, parallelRNGi)

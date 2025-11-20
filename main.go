@@ -94,10 +94,11 @@ func (g *Game) Update() error {
 				x, y := ebiten.CursorPosition()
 				col := uint8(x / (tileSize + tileMargin))
 				row := uint8(y / (tileSize + tileMargin))
-				mask := uint64(1) << (row*8 + col)
+				maskIndex := row*8 + col
+				mask := uint64(1) << (uint64(maskIndex))
 
 				if g.legalMoves&mask != 0 {
-					g.node = NextPUCTNodeFromInput(g.node, [2]uint8{row, col})
+					g.node = NextPUCTNodeFromInput(g.node, maskIndex)
 					g.waitingForUser = false
 				}
 			}
