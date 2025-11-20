@@ -47,10 +47,11 @@ func BenchmarkRollout(b *testing.B) {
 
 func BenchmarkRolloutParallel(b *testing.B) {
 	nodeP := InitialRootNode()
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	b.RunParallel(func(pb *testing.PB) {
+		// Each goroutine gets its own RNG seeded differently
+		localRng := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for pb.Next() {
-			SimulateRollout(nodeP.GameState, rng)
+			SimulateRollout(nodeP.GameState, localRng)
 		}
 	})
 }

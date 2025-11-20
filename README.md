@@ -56,16 +56,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30288100 ns/op	  174411 B/op	    2866 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30469754 ns/op	   88376 B/op	    1397 allocs/op
-    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  31097039 ns/op	  302717 B/op	    3881 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     156	   7634688 ns/op	  142079 B/op	    1518 allocs/op
-    BenchmarkRollout-8                                  	   18026	     65334 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkRolloutParallel-8                          	   88774	     13735 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     134	   8810127 ns/op	  179820 B/op	    2909 allocs/op
-    BenchmarkVersus-8                                   	       2	 728645666 ns/op	 6560808 B/op	   78171 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  30139646 ns/op	  174438 B/op	    2867 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30387731 ns/op	   88556 B/op	    1394 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      37	  30658917 ns/op	  302394 B/op	    3878 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     169	   7262353 ns/op	  141993 B/op	    1517 allocs/op
+    BenchmarkRollout-8                                  	   17304	     67777 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   84931	     13560 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     165	   7691323 ns/op	  179837 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 622516167 ns/op	 6601920 B/op	   79263 allocs/op
     PASS
-    ok  	othello	10.540s
+    ok  	othello	10.205s
 
 
 
@@ -391,3 +391,29 @@ Results as the black opponent of the MCTS UCT (both having 500 simulations per t
     Draws: 6
     Total Games ran: 100
     Total run time for all the games: 1m40.353152166s
+
+### Align fields to avoid cache line problems
+
+Before: 
+
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30288100 ns/op	  174411 B/op	    2866 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30469754 ns/op	   88376 B/op	    1397 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  31097039 ns/op	  302717 B/op	    3881 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     156	   7634688 ns/op	  142079 B/op	    1518 allocs/op
+    BenchmarkRollout-8                                  	   18026	     65334 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   88774	     13735 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     134	   8810127 ns/op	  179820 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 728645666 ns/op	 6560808 B/op	   78171 allocs/op
+
+After:
+
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  30139646 ns/op	  174438 B/op	    2867 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30387731 ns/op	   88556 B/op	    1394 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      37	  30658917 ns/op	  302394 B/op	    3878 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     169	   7262353 ns/op	  141993 B/op	    1517 allocs/op
+    BenchmarkRollout-8                                  	   17304	     67777 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   84931	     13560 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     165	   7691323 ns/op	  179837 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 622516167 ns/op	 6601920 B/op	   79263 allocs/op
+    PASS
+    ok  	othello	10.205s
