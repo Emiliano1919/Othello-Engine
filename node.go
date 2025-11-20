@@ -3,13 +3,13 @@ package main
 // Node struct and methods
 
 type Node struct {
+	Parent       *Node
+	Children     []*Node
+	UntriedMoves []uint8
+	GameState    State
 	Visits       int
 	Wins         int
-	Children     []*Node
-	Parent       *Node
-	UntriedMoves []uint8
-	Move         uint8 // The move that led us here
-	GameState    State // Current boards with whose turn is it to move
+	Move         uint8
 }
 
 func InitialRootNode() *Node {
