@@ -5,11 +5,11 @@ package main
 type Node struct {
 	Visits       int
 	Wins         int
-	Parent       *Node
 	Children     []*Node
-	GameState    State // Current boards with whose turn is it to move
-	Move         uint8 // The move that led us here
+	Parent       *Node
 	UntriedMoves []uint8
+	Move         uint8 // The move that led us here
+	GameState    State // Current boards with whose turn is it to move
 }
 
 func InitialRootNode() *Node {

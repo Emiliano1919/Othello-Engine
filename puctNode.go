@@ -3,16 +3,16 @@ package main
 // Node struct and methods for PUCT
 
 type PUCTNode struct {
-	Visits       int
-	Parent       *PUCTNode
-	Children     []*PUCTNode
-	GameState    State // Current boards with whose turn is it to move
-	Move         uint8 // The move that led us here
-	UntriedMoves []uint8
-	N            map[uint8]int // Visit count for each action (Apparently other implementations write it like this)
-	// But i could get the same information of N by iterating over the child and getting the visits
 	Q map[uint8]float64 // Average reward for each action
 	P map[uint8]float64 // Prior probabilities for each action
+	N map[uint8]int     // Visit count for each action (Apparently other implementations write it like this)
+	// But i could get the same information of N by iterating over the child and getting the visits
+	Visits       int
+	Children     []*PUCTNode
+	Parent       *PUCTNode
+	UntriedMoves []uint8
+	Move         uint8 // The move that led us here
+	GameState    State // Current boards with whose turn is it to move
 }
 
 func InitialRootPUCTNode() *PUCTNode {

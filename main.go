@@ -27,11 +27,11 @@ const (
 type Game struct {
 	node           *PUCTNode
 	boardImage     *ebiten.Image
-	waitingForUser bool   // We use this to keep the asynchronous code out of the loop
-	legalMoves     uint64 // We put it here because we calculate it at the end of the machine turn
-	state          GamePhase
-	userIsBlack    bool
 	rng            *rand.Rand
+	legalMoves     uint64 // We put it here because we calculate it at the end of the machine turn
+	waitingForUser bool   // We use this to keep the asynchronous code out of the loop
+	userIsBlack    bool
+	state          GamePhase
 }
 
 func (g *Game) UpdateStartScreen() {
