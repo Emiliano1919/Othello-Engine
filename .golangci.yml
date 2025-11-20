@@ -17,3 +17,4 @@ linters:
       disable-all: true
       enable:
       - fieldalignment
+      #  This is the best  :) golangci-lint run --enable-only govet --fix
