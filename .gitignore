@@ -1,3 +1,4 @@
 *.out
 *.test
 .DS_Store
+.golangci.yml
