@@ -204,7 +204,7 @@ func ArrayOfMoves(legalMoves uint64) []uint8 {
 
 // Get a sorted array of the legal move locations in row column format in the board
 func ArrayOfPositionalMoves(legalMoves []uint8) [][2]uint8 {
-	var res [][2]uint8
+	res := make([][2]uint8, 0, len(legalMoves))
 	for _, move := range legalMoves {
 		row := uint8(move >> 3) // Faster division by 8
 		col := uint8(move & 7)  // Faster modulo 8
