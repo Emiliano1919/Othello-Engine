@@ -14,7 +14,12 @@ linters:
   settings:
     # See the dedicated "linters.settings" documentation section.
     govet:
-      disable-all: true
+      disable-all: false 
+      enable-all: true
       enable:
-      - fieldalignment
-      #  This is the best  :) golangci-lint run --enable-only govet --fix
+       - assign
+        # Check for useless assignments.
+       - fieldalignment
+        # Check for common mistakes involving boolean operators.
+       - bools
+        #  This is the best  :) golangci-lint run --enable-only govet --fix

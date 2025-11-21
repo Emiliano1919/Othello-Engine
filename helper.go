@@ -96,8 +96,8 @@ func RequestMove(userIsBlack bool) [2]uint8 {
 	fmt.Printf("Enter your move %s (e.g., 6 7): ", color)
 	_, err := fmt.Scanf("%d %d", &arr[0], &arr[1])
 	if err != nil {
-		fmt.Println("Error:", err)
-		panic(nil)
+		fmt.Println("Error while scanning:", err)
+		panic(err)
 	}
 	fmt.Println("You entered:", arr)
 	return arr

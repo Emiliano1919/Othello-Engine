@@ -300,6 +300,9 @@ func (b *Board) MakeMovePositional(forBlack bool, row, col uint8) {
 	}
 }
 
+/*
+Given a position and a board execute the move.
+*/
 func (b *Board) MakeMoveIndex(forBlack bool, index uint8) {
 	if !b.IsValidMoveIndex(forBlack, index) {
 		panic("invalid move")
@@ -312,10 +315,13 @@ func (b *Board) MakeMoveIndex(forBlack bool, index uint8) {
 	}
 }
 
+// If at least one  (black or white) has a possible move to make then it is a non terminal state
+// Only if both have exhausted their moves will it be false
 func IsTerminalState(state State) bool {
-	return state.Boards.HasValidMove(true) == false && state.Boards.HasValidMove(false) == false
+	return !state.Boards.HasValidMove(true) && !state.Boards.HasValidMove(false)
 }
 
+// There are only 3 states Black win, white win and draw
 func WinnerState(state State) WinState {
 	if state.Boards.CountOfPieces(true) > state.Boards.CountOfPieces(false) {
 		return BLACK_WIN // Black wins
