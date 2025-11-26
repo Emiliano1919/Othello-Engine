@@ -6,8 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-
-
 const (
 	tileSize   = 50
 	tileMargin = 2
@@ -56,7 +54,7 @@ func makeBoardImage() *ebiten.Image {
 	return img
 }
 
-// Pre render the disks
+// makeDiskImage pre renders the disks to avoid re rendering.
 func makeDiskImage(c color.RGBA) *ebiten.Image {
 	img := ebiten.NewImage(tileSize, tileSize)
 	img.Fill(color.Transparent) // fully transparent background
@@ -92,7 +90,7 @@ func makeDiskImage(c color.RGBA) *ebiten.Image {
 	return img
 }
 
-// Place the prerendered disks on the image of the board (also pre rendered)
+// Draw places the prerendered disks on the image of the board (also pre rendered).
 func (s *State) Draw(screen *ebiten.Image) {
 	// Draw the static board background
 	op := &ebiten.DrawImageOptions{}
@@ -111,7 +109,7 @@ func (s *State) Draw(screen *ebiten.Image) {
 	}
 }
 
-// Place it exactly where it needs to be
+// drawDisk places the disk where desired row col format.
 func drawDisk(screen *ebiten.Image, row, col int, img *ebiten.Image) {
 	x := col*tileSize + (col+1)*tileMargin
 	y := row*tileSize + (row+1)*tileMargin
@@ -120,6 +118,7 @@ func drawDisk(screen *ebiten.Image, row, col int, img *ebiten.Image) {
 	screen.DrawImage(img, op)
 }
 
+// drawDiskAtIndex places the disk where desired index format.
 func drawDiskAtIndex(screen *ebiten.Image, i int, diskImg *ebiten.Image) {
 	row := i / boardSize
 	col := i % boardSize

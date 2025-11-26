@@ -2,6 +2,7 @@ package main
 
 // Node struct and methods for PUCT
 
+// PUCTNode is a game Node with extra variables needed to implement PUCT version of MCTS.
 type PUCTNode struct {
 	Q            map[uint8]float64
 	P            map[uint8]float64
@@ -14,6 +15,7 @@ type PUCTNode struct {
 	Move         uint8
 }
 
+// InitialRootPUCTNode returns the initial root, the start of the game in Node PUCT form.
 func InitialRootPUCTNode() *PUCTNode {
 	var node *PUCTNode
 	var boards Board
@@ -26,6 +28,8 @@ func InitialRootPUCTNode() *PUCTNode {
 	return node
 }
 
+// NextPUCTNodeFromInput returns the root node of the subtree resulting
+// from selecting the given move from the current position.
 func NextPUCTNodeFromInput(parent *PUCTNode, moveIndex uint8) *PUCTNode {
 	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
 	for _, child := range parent.Children {
@@ -48,6 +52,7 @@ func NextPUCTNodeFromInput(parent *PUCTNode, moveIndex uint8) *PUCTNode {
 	return NewPUCTNode(newState, parent, moveIndex)
 }
 
+// NewPUCTNode returns a new PUCT node.
 func NewPUCTNode(state State, parent *PUCTNode, move uint8) *PUCTNode {
 	var legalMoves uint64
 	if state.BlackTurn {
@@ -75,23 +80,28 @@ func NewPUCTNode(state State, parent *PUCTNode, move uint8) *PUCTNode {
 	}
 }
 
-// Return true if node is fully expanded otherwise false
+// IsFullyExpandedPUCT returns true if node is fully expanded otherwise false.
+// A node is considered fully expanded if no moves are left to try (you cannot generate more children of it).
 func (node *PUCTNode) IsFullyExpandedPUCT() bool {
 	return len(node.UntriedMoves) == 0
 }
 
-// Check if black and white have remaining moves
+// IsTerminalPUCT checks if black and white have remaining moves.
+// If the game can be continued after this node then it returns false, otherwise true.
 func (node *PUCTNode) IsTerminalPUCT() bool {
 	return IsTerminalState(node.GameState)
 }
 
-// Return the current score of the node. Position 0 is black, position 1 is white
+// CurrentScorePUCT returns the current score of the game at this node/state.
+// Position 0 is black, position 1 is white
 func (node *PUCTNode) CurrentScorePUCT() [2]int {
 	blackScore := node.GameState.Boards.CountOfPieces(true)
 	whiteScore := node.GameState.Boards.CountOfPieces(false)
 	return [2]int{blackScore, whiteScore}
 }
 
+// WinnerPUCT returns the current WinState at this node.
+// Who is winning.
 func (node *PUCTNode) WinnerPUCT() WinState {
 	return WinnerState(node.GameState)
 }

@@ -22,7 +22,8 @@ const (
 	CELL_EMPTY
 )
 
-// New Winstate to avoid incorrect comparisons and modifications
+// Winstate gives the only three possible outcomes of a game.
+// To avoid confusion and problems.
 type WinState int
 
 const (
@@ -55,7 +56,7 @@ func (b *Board) CellState(row, col int) CellState {
 	}
 }
 
-// Count the number of pieces on any board
+// CountOfPieces counts the number of pieces on any given board.
 func (b *Board) CountOfPieces(forBlack bool) int {
 	var n uint64
 	if forBlack {
@@ -106,10 +107,12 @@ func (b *Board) Init() {
 	b.SetCellState(4, 4, CELL_WHITE)
 }
 
-// Cardinal directions you can shift to (horizontal, vertical, and diagonals)
+// NUM_DIRS cardinal directions you can shift to (horizontal, vertical, and diagonals).
 const NUM_DIRS = 8
 
-// shift moves all bits in `disks` one step in the given direction.
+// shift moves all bits in the bitboard disks one step in a given direction.
+// This is needed so that we can do bitboard operations on a bitboard.
+// We use it to calculate using bitoperations the possible moves and resulting captures.
 func shift(disks uint64, dir int) uint64 {
 	if dir < 0 || dir >= NUM_DIRS {
 		panic("invalid direction")
@@ -156,11 +159,9 @@ func shift(disks uint64, dir int) uint64 {
 	return (disks << LSHIFTS[dir]) & MASKS[dir]
 }
 
-/*
-	Returns a bitboard where the 1s represent valid places to put the disk
-
-Uses the Dumb7fill algorithm to use the bitboard to get the valid moves
-*/
+// generateMoves returns a bitboard where the 1s represent valid places to put the disk.
+// The bitboards should be provided in order as to get the result of where the user (myDisks) can move.
+// Uses the Dumb7fill algorithm to use the bitboard to get the valid moves.
 func generateMoves(myDisks, oppDisks uint64) uint64 {
 	empty := ^(myDisks | oppDisks)
 	var legalMoves uint64
@@ -177,6 +178,8 @@ func generateMoves(myDisks, oppDisks uint64) uint64 {
 	return legalMoves
 }
 
+// FastArrayOfMoves returns a sorted array of the legal moves by index in the board.
+// It is an efficient version of ArrayOfMoves because it is O(log n).
 func FastArrayOfMoves(legal uint64) []uint8 {
 	// According to a paper I found the maximum size ever is 33
 	res := make([]uint8, 0, 33)
@@ -188,7 +191,8 @@ func FastArrayOfMoves(legal uint64) []uint8 {
 	return res
 }
 
-// Get a sorted array of the legal move locations in the board
+// ArrayOfMoves returns a sorted array of the legal move locations in the board.
+// Inneficient because it goes through all the locations of the board.
 func ArrayOfMoves(legalMoves uint64) []uint8 {
 	var res []uint8
 	for row := 0; row < 8; row++ {
@@ -202,7 +206,7 @@ func ArrayOfMoves(legalMoves uint64) []uint8 {
 	return res
 }
 
-// Get a sorted array of the legal move locations in row column format in the board
+// ArrayOfPositionalMoves returns a sorted array of the legal move locations in row column format in the board.
 func ArrayOfPositionalMoves(legalMoves []uint8) [][2]uint8 {
 	res := make([][2]uint8, 0, len(legalMoves))
 	for _, move := range legalMoves {
@@ -213,7 +217,7 @@ func ArrayOfPositionalMoves(legalMoves []uint8) [][2]uint8 {
 	return res
 }
 
-// --- Helpers to check if there are possible moves ---
+// HasValidMove checks if there are available moves from the current position, provided the user.
 // Input: Flag to indicate if we want to check for black or not (White)
 func (b *Board) HasValidMove(forBlack bool) bool {
 	if forBlack {
@@ -222,11 +226,8 @@ func (b *Board) HasValidMove(forBlack bool) bool {
 	return generateMoves(b.White, b.Black) != 0
 }
 
-/*
-	Check if a particular move is valid, return true if yes, and 0 if not
-
+// IsValidMovePositional checks if a particular move by position is valid, return true if yes, and 0 if not.
 // We achieve this using masks
-*/
 func (b *Board) IsValidMovePositional(forBlack bool, row, col uint8) bool {
 	// Check valid board coordinates
 	if row >= 8 || col >= 8 {
@@ -242,11 +243,8 @@ func (b *Board) IsValidMovePositional(forBlack bool, row, col uint8) bool {
 	return generateMoves(b.White, b.Black)&mask != 0
 }
 
-/*
-	Check if a particular move is valid, return true if yes, and 0 if not
-
+// IsValidMoveIndex checks if a particular move by index is valid, return true if yes, and 0 if not.
 // We achieve this using masks
-*/
 func (b *Board) IsValidMoveIndex(forBlack bool, index uint8) bool {
 	if index >= 64 {
 		return false
@@ -258,11 +256,10 @@ func (b *Board) IsValidMoveIndex(forBlack bool, index uint8) bool {
 	return generateMoves(b.White, b.Black)&mask != 0
 }
 
-/*
-Once a move is made we update the board (the sandwhiched disks need to change colors)
-moveIndex should be a number that represents a position in the uint64 so it can range from 0 to 63
-*/
-func resolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
+// resolveMove updates the boards with the captures achieved by the move.
+// Once a move is made we update the board (the sandwhiched disks need to change colors)
+// moveIndex should be a number that represents a position in the uint64 so it can range from 0 to 63
+func ResolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
 	newDisk := uint64(1) << moveIndex
 	var captured uint64
 
@@ -284,9 +281,7 @@ func resolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
 	*oppDisks ^= captured // We substract the captured ones
 }
 
-/*
-Given a position and a board execute the move.
-*/
+// MakeMovePositional given a position (in row col format) and a board execute the move.
 func (b *Board) MakeMovePositional(forBlack bool, row, col uint8) {
 	if !b.IsValidMovePositional(forBlack, row, col) {
 		panic("invalid move")
@@ -294,33 +289,33 @@ func (b *Board) MakeMovePositional(forBlack bool, row, col uint8) {
 
 	moveIndex := row*8 + col
 	if forBlack {
-		resolveMove(&b.Black, &b.White, moveIndex)
+		ResolveMove(&b.Black, &b.White, moveIndex)
 	} else {
-		resolveMove(&b.White, &b.Black, moveIndex)
+		ResolveMove(&b.White, &b.Black, moveIndex)
 	}
 }
 
-/*
-Given a position and a board execute the move.
-*/
+// MakeMoveIndex given a position index and a board execute the move.
 func (b *Board) MakeMoveIndex(forBlack bool, index uint8) {
 	if !b.IsValidMoveIndex(forBlack, index) {
 		panic("invalid move")
 	}
 
 	if forBlack {
-		resolveMove(&b.Black, &b.White, index)
+		ResolveMove(&b.Black, &b.White, index)
 	} else {
-		resolveMove(&b.White, &b.Black, index)
+		ResolveMove(&b.White, &b.Black, index)
 	}
 }
 
+// IsTerminalState returns if the current state is terminal (no moves remaining by both players).
 // If at least one  (black or white) has a possible move to make then it is a non terminal state
 // Only if both have exhausted their moves will it be false
 func IsTerminalState(state State) bool {
 	return !state.Boards.HasValidMove(true) && !state.Boards.HasValidMove(false)
 }
 
+// WinnerState returns the winner state of the given state. Who is winning.
 // There are only 3 states Black win, white win and draw
 func WinnerState(state State) WinState {
 	if state.Boards.CountOfPieces(true) > state.Boards.CountOfPieces(false) {
@@ -332,7 +327,8 @@ func WinnerState(state State) WinState {
 	}
 }
 
-// Return the current score of the node. Position 0 is black, position 1 is white
+// CurrentStateScore return the current score of the node.
+// Position 0 is black, position 1 is white
 func CurrentStateScore(state State) [2]int {
 	blackScore := state.Boards.CountOfPieces(true)
 	whiteScore := state.Boards.CountOfPieces(false)

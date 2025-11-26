@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-// Traverse until a leaf using PUCT
+// SelectPUCT traverses tree until a leaf node is found using PUCT.
 func SelectPUCT(node *PUCTNode, c float64) *PUCTNode {
 	for node.IsFullyExpandedPUCT() && !node.IsTerminalPUCT() {
 		node = BestPUCT(node, c)
@@ -13,7 +13,7 @@ func SelectPUCT(node *PUCTNode, c float64) *PUCTNode {
 	return node
 }
 
-// Expand if there are moves left to try, creating new children
+// ExpandLeafPUCT expands the  leaf node if there are moves left to try, creating new children.
 func ExpandLeafPUCT(node *PUCTNode) *PUCTNode {
 	if node.IsTerminalPUCT() {
 		return node
@@ -21,7 +21,7 @@ func ExpandLeafPUCT(node *PUCTNode) *PUCTNode {
 	return node.ExpandPUCT()
 }
 
-// Return an unexplored child of the current node
+// ExpandPUCT returns an unexplored child of the current node.
 func (node *PUCTNode) ExpandPUCT() *PUCTNode {
 	if len(node.UntriedMoves) == 0 {
 		return nil
@@ -50,7 +50,7 @@ func (node *PUCTNode) ExpandPUCT() *PUCTNode {
 	return child
 }
 
-// Update visits and wins (A tie counts as 0.5)
+// BackpropagatePUCT updates visits and wins (A tie counts as 0.5)
 func BackpropagatePUCT(node *PUCTNode, result WinState) {
 	var reward float64
 	for node != nil {
@@ -85,6 +85,7 @@ func BackpropagatePUCT(node *PUCTNode, result WinState) {
 	}
 }
 
+// BestPUCT returns the best child node, of the curent node, according to the PUCT equation.
 func BestPUCT(node *PUCTNode, c float64) *PUCTNode {
 	var bestChildNode *PUCTNode
 	bestPUCT := -math.MaxFloat64
@@ -105,7 +106,7 @@ func BestPUCT(node *PUCTNode, c float64) *PUCTNode {
 	return bestChildNode
 }
 
-// Selection of the best node  (The one with most visits) once MCTS has Backpropagated
+// BestNodeFromMCTSPUCT selects the best child node, move, (The one with most visits) once MCTS has Backpropagated.
 func BestNodeFromMCTSPUCT(node *PUCTNode) *PUCTNode {
 	var bestNode *PUCTNode
 	maxVisits := -1
@@ -118,7 +119,7 @@ func BestNodeFromMCTSPUCT(node *PUCTNode) *PUCTNode {
 	return bestNode
 }
 
-// Montecarlo Tree Search Implemented correctly
+// MonteCarloTreeSearchPUCT determines the best move, from the current state/node, using MCTS with PUCT equation.
 func MonteCarloTreeSearchPUCT(currentRoot *PUCTNode, iterations int, rng *rand.Rand) *PUCTNode {
 	if currentRoot.IsTerminalPUCT() {
 		return currentRoot
