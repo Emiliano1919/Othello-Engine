@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// New OptimizeFor... to increase Clarity
+// OptimizeFor declares for who you need to optimize the moves for.
 type OptimizeFor int
 
 const (
@@ -266,7 +266,7 @@ func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeF
 	return BestNodeFromMCTS(currentRoot)
 }
 
-// OriginalMontecarloTreeSearch implemented as usual.
+// OriginalMonteCarloTreeSearch implemented as usual.
 // Returns the best move determined by MCTS with UCT.
 func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
@@ -315,7 +315,7 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 	return movesWithRatio // We return a map with the information needed
 }
 
-// SingleRunParallelization is a root level parallelization of MCTS.
+// SingleRunParallelizationMCTS is a root level parallelization of MCTS.
 // It works by generating one master tree and at the same time running in parallel simulations that will be used
 // to update the first level of the master tree (the children ) with statistics from the parallel simulations.
 // This method decreases the variance according to research.

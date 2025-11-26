@@ -22,7 +22,7 @@ const (
 	CELL_EMPTY
 )
 
-// Winstate gives the only three possible outcomes of a game.
+// WinState gives the only three possible outcomes of a game.
 // To avoid confusion and problems.
 type WinState int
 
@@ -256,7 +256,7 @@ func (b *Board) IsValidMoveIndex(forBlack bool, index uint8) bool {
 	return generateMoves(b.White, b.Black)&mask != 0
 }
 
-// resolveMove updates the boards with the captures achieved by the move.
+// ResolveMove updates the boards with the captures achieved by the move.
 // Once a move is made we update the board (the sandwhiched disks need to change colors)
 // moveIndex should be a number that represents a position in the uint64 so it can range from 0 to 63
 func ResolveMove(myDisks, oppDisks *uint64, moveIndex uint8) {
