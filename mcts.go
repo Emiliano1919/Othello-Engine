@@ -14,7 +14,8 @@ const (
 	OPTIMIZE_FOR_WHITE
 )
 
-// Return an unexplored child of the current node
+// Expand returns an unexplored child of the current node.
+// If the node has been completely explored it returns nil.
 func (node *Node) Expand() *Node {
 	if len(node.UntriedMoves) == 0 {
 		return nil
@@ -43,7 +44,8 @@ func (node *Node) Expand() *Node {
 	return child
 }
 
-// Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
+// AgressiveTraverse returns a new node using a modified MCTS traversal.
+// The AgressiveBestUCT is biased for explotation and we return not the leaf but the expansion of it.
 func AgressiveTraverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = AgressiveBestUCT(node, float64(2))
@@ -54,7 +56,7 @@ func AgressiveTraverse(node *Node) *Node {
 	return node.Expand()
 }
 
-// Traverse until a leaf using OriginalBestUCT
+// Select traverses until reaching a leaf using OriginalBestUCT.
 func Select(node *Node, c float64) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = OriginalBestUCT(node, c)
@@ -62,7 +64,7 @@ func Select(node *Node, c float64) *Node {
 	return node
 }
 
-// Expand if there are moves left to try, creating new children
+// ExpandLeaf expands the node if there are moves left to try, by creating new children.
 func ExpandLeaf(node *Node) *Node {
 	if node.IsTerminal() {
 		return node
@@ -70,8 +72,9 @@ func ExpandLeaf(node *Node) *Node {
 	return node.Expand()
 }
 
-// This function was split for clarity (DO NOT USE)
-// Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it
+// OriginalTraverse is selection and expansion of MCTS in one.
+// This function was split for clarity (DO NOT USE).
+// Traverse the Montecarlo tree using the best UCT, when you find a leaf node expand it.
 func OriginalTraverse(node *Node) *Node {
 	for node.IsFullyExpanded() && !node.IsTerminal() {
 		node = OriginalBestUCT(node, float64(2))
@@ -82,7 +85,8 @@ func OriginalTraverse(node *Node) *Node {
 	return node.Expand()
 }
 
-// Choose best child to explore using UCT
+// AgressiveBestUCT chooses the best child to explore using a modified UCT.
+// The modified UCT gives more weight to explotation resulting in more simulation for early good finds.
 func AgressiveBestUCT(node *Node, c float64) *Node {
 	var best *Node
 	bestUCT := float64(-1 << 63)
@@ -101,7 +105,7 @@ func AgressiveBestUCT(node *Node, c float64) *Node {
 	return best
 }
 
-// Choose best child to explore using UCT
+// OriginalBestUCT chooses the best child to explore using UCT.
 func OriginalBestUCT(node *Node, c float64) *Node {
 	var best *Node
 	bestUCT := float64(-1 << 63)
@@ -119,8 +123,9 @@ func OriginalBestUCT(node *Node, c float64) *Node {
 	return best
 }
 
-// Simulate randomly from current node to the end of the game (choosing randomly at each step)
-// The states explored here are not saved, only the result
+// SimulateRollout simulates games from the current node to end game.
+// Choosing randomly at each move.
+// The states explored here are done inline (see README.md) so it is inexpensive in memory.
 func SimulateRollout(state State, random *rand.Rand) WinState {
 	current := state
 
@@ -148,8 +153,9 @@ func SimulateRollout(state State, random *rand.Rand) WinState {
 	return WinnerState(current)
 }
 
-// Update visits and wins (A tie also counts as a win)
-// It is innacurate because it only updates the levels of the color it wants
+// InnacurateBackpropagate modified backpropagate that backpropagates a result to the root of the current tree.
+// Update visits and wins (A tie also counts as a win).
+// It is innacurate because it only updates the levels of the color it wants.
 func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFor) {
 	for node != nil {
 		node.Visits++
@@ -181,7 +187,8 @@ func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFo
 	}
 }
 
-// Update visits and wins (A tie also counts as a win)
+// OriginalBackpropagate backpropagates the results to each node until the root of the given tree is reached.
+// Update visits and wins (A tie also counts as a win).
 func OriginalBackpropagate(node *Node, result WinState) {
 	for node != nil {
 		node.Visits++
@@ -211,7 +218,8 @@ func OriginalBackpropagate(node *Node, result WinState) {
 	}
 }
 
-// Selection of the best node  (The one with most visits) once MCTS has Backpropagated
+// BestNodeFromMCTS returns the child node, of the current node, with the most visits.
+// Used once MCTS has Backpropagated the results updating the statistics.
 func BestNodeFromMCTS(node *Node) *Node {
 	var bestNode *Node
 	maxVisits := -1
@@ -224,8 +232,9 @@ func BestNodeFromMCTS(node *Node) *Node {
 	return bestNode
 }
 
-// Montecarlo Tree search algorithm with agressive UCT (travers), double expansion and incorrect backpropagation
-// This model is more fun to play against than normal MCTS
+// InnacurateMonteCarloTreeSearch is a modified version of MCTS, fun to play against.
+// Montecarlo Tree search algorithm with agressive UCT (traverse), double expansion and incorrect backpropagation.
+// This model is more fun to play against than normal MCTS.
 func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeFor OptimizeFor, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
@@ -257,7 +266,8 @@ func InnacurateMonteCarloTreeSearch(currentRoot *Node, iterations int, optimizeF
 	return BestNodeFromMCTS(currentRoot)
 }
 
-// Montecarlo Tree Search Implemented correctly
+// OriginalMontecarloTreeSearch implemented as usual.
+// Returns the best move determined by MCTS with UCT.
 func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
@@ -271,7 +281,7 @@ func OriginalMonteCarloTreeSearch(currentRoot *Node, iterations int, rng *rand.R
 	return BestNodeFromMCTS(currentRoot)
 }
 
-// Montecarlo Tree Search Implemented correctly
+// RootAfterOriginalMCTS returns the root, with the updated info, instead of the best move.
 func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *Node {
 	if currentRoot.IsTerminal() {
 		return currentRoot
@@ -285,7 +295,9 @@ func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *N
 	return currentRoot
 }
 
-// Send back the number of games and wins per move from the root
+// OriginalMCTSWinsPlayoutsByMove returns back the number of games and wins per move from the given node.
+// Returns the updated statistics after doing MCTS of the moves from the current position.
+// It is used for Single run parallelization MCTS.
 func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[uint8][2]int {
 	if currentRoot.IsTerminal() {
 		return nil
@@ -303,10 +315,10 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 	return movesWithRatio // We return a map with the information needed
 }
 
-// // This is a root level parallelization
+// SingleRunParallelization is a root level parallelization of MCTS.
 // It works by generating one master tree and at the same time running in parallel simulations that will be used
-// to update the first level of the master tree (the children ) with statistics from the parallel simulations
-// This method decreases the variance according to research
+// to update the first level of the master tree (the children ) with statistics from the parallel simulations.
+// This method decreases the variance according to research.
 func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, baseRNG *rand.Rand) *Node {
 	maxProcesses := 9
 	firstLayerRes := make(chan map[uint8][2]int, maxProcesses)

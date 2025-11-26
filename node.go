@@ -12,6 +12,7 @@ type Node struct {
 	Move         uint8
 }
 
+// InitialRootNode returns a Node with the start of the game prepared
 func InitialRootNode() *Node {
 	var node *Node
 	var boards Board
@@ -24,6 +25,7 @@ func InitialRootNode() *Node {
 	return node
 }
 
+// NextNodeFromInput returns the next node (subtree) given the index of the move to be made from the current.
 func NextNodeFromInput(parent *Node, moveIndex uint8) *Node {
 
 	// If the move exists in a subtree cut that subtree and preserve it, to preserve the information of previous simulations
@@ -47,6 +49,7 @@ func NextNodeFromInput(parent *Node, moveIndex uint8) *Node {
 	return NewNode(newState, parent, moveIndex)
 }
 
+// NewNode returns a new node, setting the minimal variables (none mcts).
 func NewNode(state State, parent *Node, move uint8) *Node {
 	var legalMoves uint64
 	if state.BlackTurn {
@@ -65,24 +68,26 @@ func NewNode(state State, parent *Node, move uint8) *Node {
 	}
 }
 
-// Return true if node is fully expanded otherwise false
+// IsFullyExpanded returns true if node is fully expanded otherwise false.
 func (node *Node) IsFullyExpanded() bool {
 	return len(node.UntriedMoves) == 0
 }
 
+// IsTerminal returns true if the node is an end game node otherwise false.
 func (node *Node) IsTerminal() bool {
 	// Check if black and white have remaining moves
 	// NOTE: CHECK HERE I THINK THE LOGIC MIGHT NOT BE FULLY CORRECT
 	return IsTerminalState(node.GameState)
 }
 
-// Return the current score of the node. Position 0 is black, position 1 is white
+// CurrentScore retursn the current score of the node. Position 0 is black, position 1 is white.
 func (node *Node) CurrentScore() [2]int {
 	blackScore := node.GameState.Boards.CountOfPieces(true)
 	whiteScore := node.GameState.Boards.CountOfPieces(false)
 	return [2]int{blackScore, whiteScore}
 }
 
+// Winner given a node returns who is winning.
 func (node *Node) Winner() WinState {
 	return WinnerState(node.GameState)
 }
