@@ -65,6 +65,7 @@ func BackpropagatePUCT(node *PUCTNode, result WinState) {
 			case DRAW:
 				reward = 0.5
 			}
+			// Increment of the running average
 			node.Parent.Q[node.Move] += (reward - node.Parent.Q[node.Move]) / float64(node.Visits)
 		}
 
@@ -78,6 +79,7 @@ func BackpropagatePUCT(node *PUCTNode, result WinState) {
 			case DRAW:
 				reward = 0.5
 			}
+			// Increment of the running average
 			node.Parent.Q[node.Move] += (reward - node.Parent.Q[node.Move]) / float64(node.Visits)
 		}
 

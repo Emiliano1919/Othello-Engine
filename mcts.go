@@ -166,9 +166,9 @@ func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFo
 				case WHITE_WIN:
 					node.Wins += 0
 				case BLACK_WIN:
-					node.Wins += 1 // Otherwise optmize for draw
+					node.Wins++ // Otherwise optmize for draw
 				case DRAW:
-					node.Wins += 1
+					node.Wins++
 				}
 			}
 		case OPTIMIZE_FOR_WHITE:
@@ -179,7 +179,7 @@ func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFo
 				case BLACK_WIN:
 					node.Wins += 0
 				case DRAW:
-					node.Wins += 1
+					node.Wins++
 				}
 			}
 		}
@@ -197,20 +197,20 @@ func OriginalBackpropagate(node *Node, result WinState) {
 			case WHITE_WIN:
 				node.Wins += 0
 			case BLACK_WIN:
-				node.Wins += 1 // Otherwise optmize for draw
+				node.Wins++ // Otherwise optmize for draw
 			case DRAW:
-				node.Wins += 1
+				node.Wins++ // We count a draw in the same way as a win
 			}
 		}
 
 		if node.Parent != nil && !node.Parent.GameState.BlackTurn {
 			switch result {
 			case WHITE_WIN:
-				node.Wins += 1 // If the machine is white optimize for white
+				node.Wins++ // If the machine is white optimize for white
 			case BLACK_WIN:
 				node.Wins += 0
 			case DRAW:
-				node.Wins += 1
+				node.Wins++ // We count a draw in the same way as a win
 			}
 		}
 
