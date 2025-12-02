@@ -283,7 +283,7 @@ func RootAfterOriginalMCTS(currentRoot *Node, iterations int, rng *rand.Rand) *N
 // OriginalMCTSWinsPlayoutsByMove returns back the number of games and wins per move from the given node.
 // Returns the updated statistics after doing MCTS of the moves from the current position.
 // It is used for Single run parallelization MCTS.
-func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[uint8][2]int {
+func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand.Rand) map[uint8]int {
 	if currentRoot.IsTerminal() {
 		return nil
 	}
@@ -293,9 +293,9 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		OriginalBackpropagate(nodeToSimulateFrom, result)
 	}
-	movesWithRatio := make(map[uint8][2]int, len(currentRoot.Children))
+	movesWithRatio := make(map[uint8]int, len(currentRoot.Children))
 	for _, child := range currentRoot.Children {
-		movesWithRatio[child.Move] = [2]int{(child.Wins), (child.Visits)}
+		movesWithRatio[child.Move] = child.Visits
 	}
 	return movesWithRatio // We return a map with the information needed
 }
@@ -306,7 +306,7 @@ func OriginalMCTSWinsPlayoutsByMove(currentRoot *Node, iterations int, rng *rand
 // This method decreases the variance according to research.
 func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, baseRNG *rand.Rand) *Node {
 	maxProcesses := 9
-	firstLayerRes := make(chan map[uint8][2]int, maxProcesses)
+	firstLayerRes := make(chan map[uint8]int, maxProcesses)
 	masterTree := make(chan *Node, 1)
 	go func() {
 		masterTree <- RootAfterOriginalMCTS(currentRoot, iterationsPerRoutine, baseRNG)
@@ -331,8 +331,7 @@ func SingleRunParallelizationMCTS(currentRoot *Node, iterationsPerRoutine int, b
 		// Accumulate worker results into master's children
 		for _, child := range currentRoot.Children {
 			if res, exists := dict[child.Move]; exists {
-				child.Wins += res[0]
-				child.Visits += res[1]
+				child.Visits += res
 			}
 		}
 	}
