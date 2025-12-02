@@ -56,16 +56,16 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      36	  30143149 ns/op	  174613 B/op	    2867 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30215717 ns/op	   88595 B/op	    1395 allocs/op
-    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  30551758 ns/op	  301920 B/op	    3874 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     169	   7022824 ns/op	  141911 B/op	    1518 allocs/op
-    BenchmarkRollout-8                                  	   18679	     64245 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkRolloutParallel-8                          	   92790	     11574 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     182	   5911194 ns/op	  179843 B/op	    2909 allocs/op
-    BenchmarkVersus-8                                   	       2	 593293375 ns/op	 6632804 B/op	   79010 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30064631 ns/op	  174450 B/op	    2868 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  29933195 ns/op	   88472 B/op	    1396 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  30100511 ns/op	  301553 B/op	    3870 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     172	   6965554 ns/op	  141879 B/op	    1517 allocs/op
+    BenchmarkRollout-8                                  	   18670	     64688 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   99076	     12515 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     175	   6214005 ns/op	  179821 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 606224416 ns/op	 6570152 B/op	   79143 allocs/op
     PASS
-    ok  	othello	9.883s
+    ok  	othello	10.120s
 
 
 
