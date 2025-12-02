@@ -190,31 +190,16 @@ func InnacurateBackpropagate(node *Node, result WinState, optimizeFor OptimizeFo
 // OriginalBackpropagate backpropagates the results to each node until the root of the given tree is reached.
 // Update visits and wins (A tie also counts as a win).
 func OriginalBackpropagate(node *Node, result WinState) {
-	for node != nil {
-		node.Visits++
-		if node.Parent != nil && node.Parent.GameState.BlackTurn {
-			switch result {
-			case WHITE_WIN:
-				node.Wins += 0
-			case BLACK_WIN:
-				node.Wins++ // Otherwise optmize for draw
-			case DRAW:
-				node.Wins++ // We count a draw in the same way as a win
+	for n := node; n != nil; n = n.Parent {
+		n.Visits++
+		if p := n.Parent; p != nil {
+			isBlackTurn := p.GameState.BlackTurn
+			isBlackWin := (result == BLACK_WIN || result == DRAW)
+			isWhiteWin := (result == WHITE_WIN || result == DRAW)
+			if (isBlackTurn && isBlackWin) || (!isBlackTurn && isWhiteWin) {
+				n.Wins++
 			}
 		}
-
-		if node.Parent != nil && !node.Parent.GameState.BlackTurn {
-			switch result {
-			case WHITE_WIN:
-				node.Wins++ // If the machine is white optimize for white
-			case BLACK_WIN:
-				node.Wins += 0
-			case DRAW:
-				node.Wins++ // We count a draw in the same way as a win
-			}
-		}
-
-		node = node.Parent
 	}
 }
 
