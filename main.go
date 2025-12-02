@@ -249,7 +249,9 @@ func Versus() {
 // Versus main
 func main() {
 	start := time.Now()
-	rng := rand.New(rand.NewSource(start.UnixNano()))
+	seed := start.UnixNano()
+	rng1 := rand.New(rand.NewSource(seed))
+	rng2 := rand.New(rand.NewSource(seed + 1))
 	// Just one is needed because access is sequential between the 2 AIs  (they dont move at the same time)
 	// And the parallelization already has the necessary protections for sharing rng (each goroutine has its own rng)
 	OpponentWinCounter := 0
@@ -264,32 +266,32 @@ func main() {
 		var nodeP1 *Node
 		var nodeP2 *PUCTNode
 		if !OpponentIsBlack {
-			nodeP1 = OriginalMonteCarloTreeSearch(initialNodeP1, 500, rng)
+			nodeP1 = SingleRunParallelizationMCTS(initialNodeP1, 50, rng1)
 			nodeP2 = NextPUCTNodeFromInput(initialNodeP2, nodeP1.Move)
 			//nodeP2.GameState.Boards.PrintBoard()
 		} else {
-			nodeP2 = MonteCarloTreeSearchPUCT(initialNodeP2, 500, rng)
+			nodeP2 = SingleRunParallelizationMCTSPUCT(initialNodeP2, 50, rng2)
 			nodeP1 = NextNodeFromInput(initialNodeP1, nodeP2.Move)
 			// nodeP1.GameState.Boards.PrintBoard()
 		}
 		for !nodeP1.IsTerminal() { // This works because both nodes update each other
 			if !OpponentIsBlack {
 				if !nodeP1.GameState.BlackTurn {
-					nodeP2 = MonteCarloTreeSearchPUCT(nodeP2, 500, rng)
+					nodeP2 = SingleRunParallelizationMCTSPUCT(nodeP2, 50, rng2)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
+					nodeP1 = SingleRunParallelizationMCTS(nodeP1, 50, rng1)
 					nodeP2 = NextPUCTNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}
 			} else {
 				if nodeP1.GameState.BlackTurn {
-					nodeP2 = MonteCarloTreeSearchPUCT(nodeP2, 500, rng)
+					nodeP2 = SingleRunParallelizationMCTSPUCT(nodeP2, 50, rng2)
 					nodeP1 = NextNodeFromInput(nodeP1, nodeP2.Move)
 					//nodeP1.GameState.Boards.PrintBoard()
 				} else {
-					nodeP1 = OriginalMonteCarloTreeSearch(nodeP1, 500, rng)
+					nodeP1 = SingleRunParallelizationMCTS(nodeP1, 50, rng1)
 					nodeP2 = NextPUCTNodeFromInput(nodeP2, nodeP1.Move)
 					//nodeP2.GameState.Boards.PrintBoard()
 				}

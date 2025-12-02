@@ -37,6 +37,14 @@ func BenchmarkSingleRunParallelizationMCTS(b *testing.B) {
 	}
 }
 
+func BenchmarkSingleRunParallelizationMCTSPUCT(b *testing.B) {
+	node := InitialRootPUCTNode()
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for b.Loop() {
+		SingleRunParallelizationMCTSPUCT(node, 50, rng)
+	}
+}
+
 func BenchmarkRollout(b *testing.B) {
 	node := InitialRootNode()
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))

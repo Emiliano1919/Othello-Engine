@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"time"
 )
 
 // SelectPUCT traverses tree until a leaf node is found using PUCT.
@@ -129,6 +130,79 @@ func MonteCarloTreeSearchPUCT(currentRoot *PUCTNode, iterations int, rng *rand.R
 		nodeToSimulateFrom := ExpandLeafPUCT(selected)
 		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
 		BackpropagatePUCT(nodeToSimulateFrom, result)
+	}
+	return BestNodeFromMCTSPUCT(currentRoot)
+}
+
+// OriginalMCTSWinsPlayoutsByMove returns back the number of visits by move after MCTS PUCT
+// Returns the updated statistics after doing MCTS PUCT of the moves from the current position.
+// It is used for Single run parallelization MCTS PUCT.
+func MCTSPUCTWinsPlayoutsByMove(currentRoot *PUCTNode, iterations int, rng *rand.Rand) map[uint8]int {
+	if currentRoot.IsTerminalPUCT() {
+		return nil
+	}
+	for i := 0; i < iterations; i++ {
+		selected := SelectPUCT(currentRoot, 2.0)
+		nodeToSimulateFrom := ExpandLeafPUCT(selected)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
+		BackpropagatePUCT(nodeToSimulateFrom, result)
+	}
+	return currentRoot.N // We return a map with the information needed to make the final decision
+	// We just need to return the visits
+}
+
+// RootAfterMCTSPUCT returns the root, with the updated info, instead of the best move.
+func RootAfterMCTSPUCT(currentRoot *PUCTNode, iterations int, rng *rand.Rand) *PUCTNode {
+	if currentRoot.IsTerminalPUCT() {
+		return currentRoot
+	}
+	for i := 0; i < iterations; i++ {
+		selected := SelectPUCT(currentRoot, 2.0)
+		nodeToSimulateFrom := ExpandLeafPUCT(selected)
+		result := SimulateRollout(nodeToSimulateFrom.GameState, rng)
+		BackpropagatePUCT(nodeToSimulateFrom, result)
+	}
+	return currentRoot
+}
+
+// SingleRunParallelizationMCTSPUCT is a root level parallelization of MCTS PUCT.
+// It works by generating one master tree and at the same time running in parallel simulations from a root copy
+// that will be used to update the first level of the master tree (the children )
+// with statistics from the parallel simulations.
+// This method decreases the variance according to research.
+func SingleRunParallelizationMCTSPUCT(currentRoot *PUCTNode, iterationsPerRoutine int, baseRNG *rand.Rand) *PUCTNode {
+	maxProcesses := 9
+	firstLayerRes := make(chan map[uint8]int, maxProcesses)
+	masterTree := make(chan *PUCTNode, 1)
+	go func() {
+		masterTree <- RootAfterMCTSPUCT(currentRoot, iterationsPerRoutine, baseRNG)
+	}()
+	for i := 0; i < maxProcesses; i++ {
+		go func(id int) {
+			// We provide a different rng per parallelization to avoid having the same results.
+			parallelRNGi := rand.New(rand.NewSource(time.Now().UnixNano() + int64(id)))
+			var emptyMove uint8
+			broadcastedNode := NewPUCTNode(currentRoot.GameState, nil, emptyMove)
+			// We just need the state of the root (the tree can be generated of it), we don't care about the parent of this one
+			// We need to do this because if we share the original root there will be race conditions
+			parallelResult := MCTSPUCTWinsPlayoutsByMove(broadcastedNode, iterationsPerRoutine, parallelRNGi)
+			firstLayerRes <- parallelResult
+		}(i)
+	}
+	// Wait for all of them to complete
+	currentRoot = <-masterTree // update the tree with the result of 1 simulation (this will be the base)
+	close(masterTree)
+	// Collect exactly maxProcesses results from worker goroutines
+	for i := 0; i < maxProcesses; i++ {
+		dict := <-firstLayerRes
+		// Accumulate worker results into master's children
+		for _, child := range currentRoot.Children {
+			if res, exists := dict[child.Move]; exists {
+				child.Visits += res
+				// We just add visits by move because the selection of the best move just takes that into account
+				// The wins are not added because they are just used to decide the exploration/explotation in the process of estimation
+			}
+		}
 	}
 	return BestNodeFromMCTSPUCT(currentRoot)
 }
