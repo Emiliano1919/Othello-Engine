@@ -4,9 +4,9 @@ package main
 
 // PUCTNode is a game Node with extra variables needed to implement PUCT version of MCTS.
 type PUCTNode struct {
-	Q            map[uint8]float64
-	P            map[uint8]float64
-	N            map[uint8]int
+	Q            map[uint8]float64 // Rewards by move
+	P            map[uint8]float64 // Priors
+	N            map[uint8]int     // Visits by move
 	Parent       *PUCTNode
 	Children     []*PUCTNode
 	UntriedMoves []uint8
