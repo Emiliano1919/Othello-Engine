@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math/rand"
+	"runtime"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -248,6 +249,7 @@ func Versus() {
 
 // Versus main
 func main() {
+	fmt.Println("GOMAXPROCS:", runtime.GOMAXPROCS(0))
 	start := time.Now()
 	seed := start.UnixNano()
 	rng1 := rand.New(rand.NewSource(seed))
