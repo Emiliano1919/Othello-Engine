@@ -25,6 +25,7 @@ Uses Montecarlo Tree search to select the best move.
 - Create a Neural Network that analyzes the current leaf to see how it will play out (maybe through self play maybe through a dataset)
 - Replace UCT with other methods seen in previous research paper
     - ~~Implement PUCT~~ (DONE)
+        - ~~Parallelize PUCT~~ (DONE)
     - Ask for questions to the respective creators of the evaluation functions (?)
 - Get EDAX or Egaroucid running to test the game
 - Maybe try to introduce the evaluation pattern used by Logistello (in some sort of way)
@@ -41,9 +42,9 @@ Uses Montecarlo Tree search to select the best move.
     - ~~Optimize the random number generator~~ (DONE)
     - ~~Optimize the memory expensive ArrayOfPositionalMoves, and ArrayOfMoves~~ (DONE)
 - Improve code readability
-    - CurrentScore can be a gamestate function instead of a node function
-    - Try to avoid repetition
-    - Improve comments
+    - ~~CurrentScore can be a gamestate function instead of a node function~~ (DONE)
+    - ~~Try to avoid repetition~~ (DONE)
+    - ~~Improve comments~~ (DONE)
 
 ## Current benchmarking results:
 
