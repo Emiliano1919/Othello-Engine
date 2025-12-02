@@ -50,40 +50,38 @@ func (node *PUCTNode) ExpandPUCT() *PUCTNode {
 	return child
 }
 
+// rewardFor is an aid function that calculates the reward for the current PUCTNode
+func rewardFor(parentBlackTurn bool, result WinState) float64 {
+	switch result {
+	case DRAW:
+		return 0.5
+	case BLACK_WIN:
+		if parentBlackTurn {
+			return 1
+		}
+		return 0
+	case WHITE_WIN:
+		if !parentBlackTurn {
+			return 1
+		}
+		return 0
+	}
+	return 0
+}
+
 // BackpropagatePUCT updates visits and wins (A tie counts as 0.5)
 func BackpropagatePUCT(node *PUCTNode, result WinState) {
-	var reward float64
-	for node != nil {
-		node.Visits++
-		if node.Parent != nil && node.Parent.GameState.BlackTurn {
-			node.Parent.N[node.Move]++
-			switch result {
-			case WHITE_WIN:
-				reward = 0
-			case BLACK_WIN:
-				reward = 1 // Otherwise optmize for draw
-			case DRAW:
-				reward = 0.5
-			}
-			// Increment of the running average
-			node.Parent.Q[node.Move] += (reward - node.Parent.Q[node.Move]) / float64(node.Visits)
+	for n := node; n != nil; n = n.Parent {
+		n.Visits++
+		p := n.Parent
+		if p == nil {
+			continue // Skip to next iteration where n will be nil
+			// End BackpropagatePUCT
 		}
-
-		if node.Parent != nil && !node.Parent.GameState.BlackTurn {
-			node.Parent.N[node.Move]++
-			switch result {
-			case WHITE_WIN:
-				reward = 1 // If the machine is white optimize for white
-			case BLACK_WIN:
-				reward = 0
-			case DRAW:
-				reward = 0.5
-			}
-			// Increment of the running average
-			node.Parent.Q[node.Move] += (reward - node.Parent.Q[node.Move]) / float64(node.Visits)
-		}
-
-		node = node.Parent
+		p.N[n.Move]++
+		reward := rewardFor(p.GameState.BlackTurn, result)
+		q := p.Q[n.Move]
+		p.Q[n.Move] += (reward - q) / float64(n.Visits) // Increment the running average
 	}
 }
 
