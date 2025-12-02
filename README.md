@@ -56,16 +56,17 @@ Current Benchmark results:
     goarch: arm64
     pkg: othello
     cpu: Apple M1
-    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30064631 ns/op	  174450 B/op	    2868 allocs/op
-    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  29933195 ns/op	   88472 B/op	    1396 allocs/op
-    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  30100511 ns/op	  301553 B/op	    3870 allocs/op
-    BenchmarkSingleRunParallelizationMCTS-8             	     172	   6965554 ns/op	  141879 B/op	    1517 allocs/op
-    BenchmarkRollout-8                                  	   18670	     64688 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkRolloutParallel-8                          	   99076	     12515 ns/op	       0 B/op	       0 allocs/op
-    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     175	   6214005 ns/op	  179821 B/op	    2909 allocs/op
-    BenchmarkVersus-8                                   	       2	 606224416 ns/op	 6570152 B/op	   79143 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  29640877 ns/op	  174677 B/op	    2863 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30277831 ns/op	   88621 B/op	    1395 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      37	  30528387 ns/op	  303003 B/op	    3883 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     171	   7016403 ns/op	  141313 B/op	    1517 allocs/op
+    BenchmarkSingleRunParallelizationMCTSPUCT-8         	     168	   7089875 ns/op	  348361 B/op	    3916 allocs/op
+    BenchmarkRollout-8                                  	   18825	     63638 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	  101917	     11543 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     201	   5755928 ns/op	  179845 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 598625083 ns/op	 6593204 B/op	   79639 allocs/op
     PASS
-    ok  	othello	10.120s
+    ok  	othello	11.141s
 
 
 
@@ -417,3 +418,59 @@ After:
     BenchmarkVersus-8                                   	       2	 593293375 ns/op	 6632804 B/op	   79010 allocs/op
     PASS
     ok  	othello	9.883s
+
+### In single run parallelization returning just the visits instead of visits and wins.
+
+**Only the visits are necessary to update the statistics and make a better decision as the wins were only used in the process of growing the tree, for move selection we just use the visits because the exploration/explotation has finished.**
+
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      37	  30064631 ns/op	  174450 B/op	    2868 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  29933195 ns/op	   88472 B/op	    1396 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  30100511 ns/op	  301553 B/op	    3870 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     172	   6965554 ns/op	  141879 B/op	    1517 allocs/op
+    BenchmarkRollout-8                                  	   18670	     64688 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	   99076	     12515 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     175	   6214005 ns/op	  179821 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 606224416 ns/op	 6570152 B/op	   79143 allocs/op
+    PASS
+    ok  	othello	10.120s
+
+    BenchmarkInnacurateMonteCarloTreeSearch-8           	      34	  29872871 ns/op	  174318 B/op	    2866 allocs/op
+    BenchmarkOriginalMonteCarloTreeSearch-8             	      38	  30519784 ns/op	   88497 B/op	    1396 allocs/op
+    BenchmarkMonteCarloTreeSearchPUCT-8                 	      38	  30477470 ns/op	  303427 B/op	    3888 allocs/op
+    BenchmarkSingleRunParallelizationMCTS-8             	     170	   6994623 ns/op	  141371 B/op	    1517 allocs/op
+    BenchmarkSingleRunParallelizationMCTSPUCT-8         	     166	   7107125 ns/op	  347882 B/op	    3912 allocs/op
+    BenchmarkRollout-8                                  	   18837	     63690 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkRolloutParallel-8                          	  101268	     11745 ns/op	       0 B/op	       0 allocs/op
+    BenchmarkInnacurateMonteCarloTreeSearchParallel-8   	     181	   5800730 ns/op	  179828 B/op	    2909 allocs/op
+    BenchmarkVersus-8                                   	       2	 597087646 ns/op	 6484508 B/op	   78777 allocs/op
+    PASS
+    ok  	othello	11.098s
+
+### Add single run Parallelization for MCTS PUCT
+
+We can now run against MCTS PUCT using single run parallelization against MCTS UCT also in a single run parallelization implementation. We will run both algorithms with 500 simulations in total per turn. As you will notice by the results the algorithm is super fast
+The results with PUCT as white are the following:
+
+    Opponent Wins: 48
+    Draws: 4
+    Total Games ran: 100
+    Total run time for all the games: 24.6096415s% 
+
+    Opponent Wins: 59
+    Draws: 4
+    Total Games ran: 100
+    Total run time for all the games: 24.352946584s%  
+
+And with PUCT as black:
+
+    Opponent Wins: 55
+    Draws: 10
+    Total Games ran: 100
+    Total run time for all the games: 24.482302667s%  
+
+    Opponent Wins: 54
+    Draws: 7
+    Total Games ran: 100
+    Total run time for all the games: 24.414951167s% 
+
+To compare running the MCTS against PUCT with 500 simulations per turn in a non parallelized way takes for 100 games 1 minute with 35 to 40 seconds on average. So we are doing it around 3 times as fast with parallelization. In practice this means we can do more simulations and have a stronger AI that "thinks" more because it can "think" faster.
